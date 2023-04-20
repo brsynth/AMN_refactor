@@ -2,7 +2,8 @@ import numpy as np
 import tensorflow as tf
 from tools import MaxScaler
 from neuralModel import NeuralModel
-from loss import loss_SV, loss_Vin, loss_Vpos
+from loss import SV_loss, V_in_loss, V_pos_loss
+
 
 
 
@@ -57,16 +58,16 @@ class AMNModel(NeuralModel):
         V_in = self.get_V_in(x)        
         if verbose: ## Have to rewrite the function print_loss_evaluate
             print_loss_evaluate(y_true, y_pred, V_in, self)               
-        loss, _ = self.Loss_constraint(V_final, V_in)
+        loss = self.constraint_loss(V_final, V_in)
         loss = np.mean(loss.numpy())
         return loss
-
-    def Loss_constraint(self, V, Vin, gradient=False):
+    
+    def constraint_loss(self,V,V_in):
         # mean squared sum L2+L3+L4
-        L2, dL2 = loss_SV(V, self.S, gradient=gradient)
-        L3, dL3 = loss_Vin(V, self.P_in, Vin,
-                           self.medium_bound, gradient=gradient)
-        L4, dL4 = loss_Vpos(V, gradient=gradient)
+        L2 = SV_loss(V, self.S)
+        L3 = V_in_loss(V, self.P_in, V_in,
+                           self.medium_bound)
+        L4 = V_pos_loss(V)
 
         # square sum of L2, L3, L4
         L2 = tf.math.square(L2)
@@ -76,23 +77,13 @@ class AMNModel(NeuralModel):
         # divide by 3 
         L = tf.math.divide_no_nan(L, tf.constant(3.0, dtype=tf.float32))
 
-        return L, dL2+dL3+dL4
-
-
-
-
+        return L
 
 
     ## must be obtained from somewhere else self.Y.shape...
     def get_V_in(self, x):
         """This method depend on the model type."""
         raise NotImplementedError
-
-
-
-
-
-
 
 
 

@@ -4,7 +4,7 @@ import keras
 from keras.utils.generic_utils import CustomObjectScope
 import tensorflow as tf
 from keras.layers import concatenate
-from loss import loss_SV, loss_Vin, loss_Vpos
+from loss import SV_loss, V_in_loss, V_pos_loss
 
 
 
@@ -76,14 +76,14 @@ class AMNWtModel(AMNModel):
         """
         P_out     = tf.convert_to_tensor(np.float32(self.P_out))
         P_outV    = tf.linalg.matmul(V, tf.transpose(P_out), b_is_sparse=True)
-        SV, _    = loss_SV(V, self.S) # SV const
-        P_inV, _  = loss_Vin(V, self.P_in, Vin, self.medium_bound) # P_in const
-        Vpos, _  = loss_Vpos(V) # V ≥ 0 const
-        outputs = concatenate([P_outV, SV, P_inV, Vpos, V], axis=1)
+        SV        = SV_loss(V, self.S) # SV const
+        P_inV = V_in_loss(V, self.P_in, Vin, self.medium_bound) # P_in const
+        V_pos = V_pos_loss(V) # V ≥ 0 const
+        outputs = concatenate([P_outV, SV, P_inV, V_pos, V], axis=1)
         self.output_dim = outputs.shape[1]
         if verbose:
             print('AMN output shapes for P_outV, SV, P_inV, Vpos, V, outputs', \
-                  P_outV.shape, SV.shape, P_inV.shape, Vpos.shape,\
+                  P_outV.shape, SV.shape, P_inV.shape, V_pos.shape,\
                   V.shape, outputs.shape)
             
         return outputs
@@ -117,7 +117,7 @@ class RNNCell(keras.layers.Layer):
 
 
         ## Is this the right place for that ?
-        ## IS matrix M2V is used in other models ?
+        ## Is matrix M2V is used in other models ?
         # Normalize M2V
         M2V = parameter.M2V
         for i in range(self.flux_dim):
