@@ -27,7 +27,6 @@ def compute_V2M_M2V(S):
     return V2M,M2V
 
 def compute_M2V(S):
-
     n, m = S.shape[1], S.shape[0]
     _, M2V = compute_V2M_M2V
     return M2V

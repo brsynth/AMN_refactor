@@ -6,7 +6,7 @@ import numpy as np
 from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
 
 
-## Call it Dataset ?
+
 class MetabolicDataset:
     """
     This class manage the dataset and all useful information coming from the metabolic
@@ -41,7 +41,6 @@ class MetabolicDataset:
         self.medium_bound = medium_bound # EB or UB
         self.method = method
 
-        ## This is a cobra model and it should be specifies !!!!!
         self.model = cobra.io.read_sbml_model(cobra_name+'.xml')
         self.reduce = False
         self.all_matrices = True
@@ -188,9 +187,9 @@ class MetabolicDataset:
         self.method = str(loaded['method'])
         self.size = loaded['size']
         self.medium = loaded['medium']
-        self.level_med = loaded['levmed'] ###
-        self.value_medium = loaded['valmed'] ###
-        self.ratio_medium = loaded['ratmed'] ###
+        self.level_med = loaded['levmed'] #
+        self.value_medium = loaded['valmed'] #
+        self.ratio_medium = loaded['ratmed'] #
         self.measure = loaded['measure']
         self.S = loaded['S']
         self.P_in = loaded['Pin']
@@ -259,7 +258,7 @@ class MetabolicDataset:
             sys.stdout.close()
         
 
-    ## Get ? Generate synthetic data ?
+    ## Get ? Change the name please :)
     ## Not used.
     def get(self, sample_size=100, varmed=[], reduce=False, verbose=False):
         # Generate a training set for AMN

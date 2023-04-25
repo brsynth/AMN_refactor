@@ -13,11 +13,10 @@ class AMNWtModel(AMNModel):
         AMNModel.__init__(self, **kwargs)
 
 
-
     def model_input_by_type(self, X, Y):
         """
-        We copy several time the dataset X to give to the RNN model a sequential
-        dataset. The number of copy is given by the attribute timestep.
+        We copy several time the dataset X to give to the RNN model a 
+        sequential dataset. The number of copy is given by the timestep attribute.
         The shape of X is then transform from (a,b) to (a,timestep,b).
         """
         X_new = np.zeros((len(X), self.timestep, X.shape[1]))
@@ -25,12 +24,9 @@ class AMNWtModel(AMNModel):
             for j in range(self.timestep):
                 X_new[i][j] = X[i]
 
-        ## is this really the place for that ?
-        ## That's strange, at least change the name !
         self.input_dim = self.timestep
 
         return X_new, Y
-    
 
 
     def set_model(self, verbose=False):
@@ -70,9 +66,12 @@ class AMNWtModel(AMNModel):
 
     def output_AMNWt(self, V, Vin, verbose=False):
         """
-        This method return the output for AMNWt model. This is a concatenation of
-        matrices : P_out.V, S.V, P_in.V, Relu(V) and V where S and P_out are the 
-        stoichiometric and measurement matrices.
+        This method return a concatenation of different type of information.
+        First, it returns the predicted reference fluxes, P_outV. Then it
+        returns the loss computed for the SV, P_inV and V_pos. Then it returns
+        the prediction on all fluxes plus some loss.
+        All theses information are given to easily construct the loss on the
+        model.
         """
         P_out     = tf.convert_to_tensor(np.float32(self.P_out))
         P_outV    = tf.linalg.matmul(V, tf.transpose(P_out), b_is_sparse=True)
@@ -85,7 +84,6 @@ class AMNWtModel(AMNModel):
             print('AMN output shapes for P_outV, SV, P_inV, Vpos, V, outputs', \
                   P_outV.shape, SV.shape, P_inV.shape, V_pos.shape,\
                   V.shape, outputs.shape)
-            
         return outputs
 
     def get_V_in(self,x):

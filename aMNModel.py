@@ -16,7 +16,7 @@ class AMNModel(NeuralModel):
     def model_input(self, X, Y, verbose=False):
         """
         This method normalize X if scaler attribute is True. Then it add three
-        zeros columns to Y making the loss to minimize SV, P_in and V≥0
+        zero columns to Y making the loss to minimize SV, P_in and V≥0
         constraint easier to compute. 
         Finally, it call the model_type_input method to prepare X and Y as
         input for the model, depending on its type.
@@ -41,22 +41,18 @@ class AMNModel(NeuralModel):
         """
         raise NotImplementedError
     
-    
 
-
-    ## TO CHANGE !!!
-    def get_loss_evaluate(self, x, y_true, y_pred, verbose=False):
-        """" 
-        This method compute a loss on constraint on y_pred. Remind that if 
-        V_pred are all the fluxes predicted by the model, y_pred is a 
-        concatenation of P_out.V_pred, S.V_pred, P_in.V_pred and ReLU(V_pred).
+    def compute_loss(self, x, y_true, y_pred, verbose=False):
+        """
+        This method compute a loss on constraint on y_pred. Remind that y_pred
+        is a concatenation of P_out.V_pred, S.V_pred, P_in.V_pred and ReLU(V_pred).
         This is not necessarily the loss used in the model optimization.
         """
 
-
+        # Get all predicted fluxes
         V_final = y_pred[:,y_true.shape[1]:y_true.shape[1]+self.S.shape[1]]
         V_in = self.get_V_in(x)        
-        if verbose: ## Have to rewrite the function print_loss_evaluate
+        if verbose: ## Not functional
             print_loss_evaluate(y_true, y_pred, V_in, self)               
         loss = self.constraint_loss(V_final, V_in)
         loss = np.mean(loss.numpy())
@@ -78,6 +74,7 @@ class AMNModel(NeuralModel):
         L = tf.math.divide_no_nan(L, tf.constant(3.0, dtype=tf.float32))
 
         return L
+    
 
 
     ## must be obtained from somewhere else self.Y.shape...
@@ -86,9 +83,6 @@ class AMNModel(NeuralModel):
         raise NotImplementedError
 
 
-
-
-## Fake function area !!!
 def print_loss_evaluate(filemodel,truc,compile=False):
     """This is a fake function to not get error above. Waiting for the load model
     issue to be explore."""

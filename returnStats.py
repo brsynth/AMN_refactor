@@ -3,11 +3,10 @@ import numpy as np
 
 class ReturnStats:
     """
-    This class store objective and loss on the train an test set. In particular, for all
-    of them, the class have two values destined to be the mean and standard deviation if
-    the is more than one value.
+    This class store objective and loss on the train an test set.
+    In particular, for all of them, the class have two values destined to be
+    the mean and standard deviation if there is more than one value.
     """
-
     def __init__(self, 
                  train_obj = None, 
                  test_obj = None, 
