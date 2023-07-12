@@ -28,12 +28,12 @@ def compute_V2M_M2V(S):
 
 def compute_M2V(S):
     n, m = S.shape[1], S.shape[0]
-    _, M2V = compute_V2M_M2V
+    _, M2V = compute_V2M_M2V(S)
     return M2V
 
 def compute_V2M(S):
     n, m = S.shape[1], S.shape[0]
-    V2M, _ = compute_V2M_M2V
+    V2M, _ = compute_V2M_M2V(S)
     return V2M
 
 def compute_P_in(S, medium, model_reactions):
