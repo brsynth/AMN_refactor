@@ -2,68 +2,15 @@ import os
 import sys
 import cobra
 import numpy as np
+import pandas as pd
 
 from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
 
-################################# just paste #################################
+################################# just pasted #################################
 import pandas
 from sklearn.utils import shuffle
 import math
 
-def read_csv(filename):
-    # Reading datafile with pandas
-    # Return HEADER and DATA
-    filename += '.csv'
-    dataframe = pandas.read_csv(filename, header=0)
-    HEADER = dataframe.columns.tolist()
-    dataset = dataframe.values
-    DATA = np.asarray(dataset[:,:])
-    return HEADER, DATA
-
-def get_objective(model):
-    # Get the reaction carring the objective
-    # Someone please tell me if there is
-    # a clearner way in Cobra to get
-    # the objective reaction
-
-    r = str(model.objective.expression)
-    r = r.split()
-    r = r[0].split('*')
-    obj_id = r[1]
-
-    # line below crash if does not exist
-    r = model.reactions.get_by_id(obj_id)
-
-    return obj_id
-
-def get_io_cobra(model, objective, 
-                 medium, mediumbound, varmed, levmed, valmed, ratmed,
-                 E, method='FBA', inf={}, verbose=False):
-    # Generate a random input and get Cobra's output
-    # Input:
-    # - model: the cobra model
-    # - objective: the list of objectiev fluxes to maximize
-    # - medium: list of reaction fluxes in medium
-    # - varmed: the medium reaction fluxes allowed to change
-    #            (can be empty then varmed are drawn at random)
-    # - levmed: the number of level an uptake flux can take
-    # - valmed: the maximum value the flux can take
-    # - ratmed: the ration of fluxes turned on
-    # - method: the method used by Cobra
-    # Output:
-    # - X=medium , Y=fluxes for reactions in E
-
-    if inf == {}:
-        inf = create_random_medium_cobra(model, objective, 
-                                         medium, mediumbound,
-                                         varmed, levmed, valmed.copy(), ratmed,
-                                         method=method,verbose=verbose)
-
-    out,obj = run_cobra(model,objective,inf,method=method,verbose=verbose)
-    Y = np.asarray(list(out.values()))
-    X = np.asarray([ inf[medium[i]] for i in range(len(medium)) ])
-
-    return X, Y
 
 def create_random_medium_cobra(model, objective, 
                                medium, mediumbound, in_varmed, levmed, valmed, ratmed,
@@ -85,7 +32,7 @@ def create_random_medium_cobra(model, objective,
     # Ouput:
     # - Intial reaction fluxes set to medium values
 
-    MAX_iteration = 5 # max numbrer of Cobra's failaure allowed
+    MAX_iteration = 5 # max numbrer of Cobra's failure allowed
 
     medini = model.medium.copy()
     INFLUX = {}
@@ -367,7 +314,7 @@ def get_matrices_LP(model, mediumbound, X, S, Pin, medium, objective,
     P  = np.float32(P)
     return S_int, S_ext, Q, P, b_int, b_ext, Sb, c
 
-
+## This function must be replaced everywhere by L.index(name) !!!!
 # Cobra utilities and stoichiometric derived matrices
 def get_index_from_id(name,L):
     # Return index in L of id name
@@ -540,8 +487,6 @@ class MetabolicDataset:
             self.load(training_file)
             return
 
-
-        ## Not used from here in this code !
         #self.check_cobra_name(cobra_name)
         #self.check_medium_name(medium_name)
         
@@ -550,35 +495,56 @@ class MetabolicDataset:
         self.medium_bound = medium_bound # EB or UB
         self.method = method
 
+        ## Should be called cobra_model !
         self.model = cobra.io.read_sbml_model(cobra_name+'.xml')
         self.reduce = False
         self.all_matrices = True
 
-        # set medium
-        H, M = read_csv(medium_name)
-        if self.method == "EXP": ## == EXP or EXP...
-            if medium_size < 1:
-                sys.exit('must indicate medium size with experimental dataset')
-            medium = []
-            for i in range(medium_size):
-                medium.append(H[i])
-            self.medium = medium
-            self.level_med, self.value_medium, self.ratio_medium = [], [], 0
-            self.X = M[:,0:len(medium)]
-            self.Y = M[:,len(medium):]
-            self.size = self.Y.shape[0]
+        ## Should be split with class heritage
+        if self.method == "EXP": ## == EXP or EXP... ?
+
+            df_medium = pd.read_csv(medium_name + ".csv", header=0)
+            medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of mediium columns...
+            growth_rate_column = [c for c in df_medium.columns if "GR" in c]
+
+            self.medium = medium_column
+            self.X = df_medium[medium_column].values
+            self.Y= df_medium[growth_rate_column].values
+            self.size = self.Y.shape[0] ## What is the purpose of this parameter !!!
+            self.level_med = [] 
+            self.value_medium = [] 
+            self.ratio_medium = 0
         else:
-            self.medium = H[1:]
-            self.level_med = [float(i) for i in M[0,1:]]
-            self.value_medium = [float(i) for i in M[1,1:]]
-            self.ratio_medium = float(M[2,1])
-            self.X, self.Y = np.asarray([]).reshape(0,0), \
-            np.asarray([]).reshape(0,0)
+            df_medium = pd.read_csv(medium_name + ".csv",index_col="name")
+            self.medium = df_medium.columns.to_list()
+            self.level_med = df_medium.loc["level"].values
+            self.value_medium = df_medium.loc["max_value"].values
+            self.ratio_medium = df_medium.loc["ratio_drawing"][0]
+            # What's happening here ?
+            self.X, self.Y = np.asarray([]).reshape(0,0), np.asarray([]).reshape(0,0)
+
         if verbose:
             print('medium:',self.medium)
             print('level_med:',self.level_med)
             print('value_medium:',self.value_medium)
             print('ratio_medium:',self.ratio_medium)
+
+
+        def get_objective(model):
+            # Get the reaction carring the objective
+            # Someone please tell me if there is
+            # a clearner way in Cobra to get
+            # the objective reaction
+
+            r = str(model.objective.expression)
+            r = r.split()
+            r = r[0].split('*')
+            obj_id = r[1]
+
+            # line below crash if does not exist
+            r = model.reactions.get_by_id(obj_id)
+
+            return obj_id
 
         # set objective and measured reactions lists
         self.objective = [get_objective(self.model)] if objective == [] else objective
@@ -596,7 +562,6 @@ class MetabolicDataset:
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
 
 
-
     def check_cobra_name(self, cobra_name):
         if cobra_name == '':
             sys.exit('Give a training file or a appropriate cobra_name.')
@@ -610,6 +575,7 @@ class MetabolicDataset:
         if not os.path.isfile(medium_name+'.csv'):
             print(medium_name)
             sys.exit('medium file not found')
+
 
 
     ## Not used.
@@ -728,25 +694,6 @@ class MetabolicDataset:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def load(self, file_name):
         # load parameters (npz format)
         
@@ -797,9 +744,6 @@ class MetabolicDataset:
 
 
 
-        
-
-    ## Not used
     def printout(self,filename=''):
         if filename != '':
             sys.stdout = open(filename, 'wb')
@@ -809,7 +753,7 @@ class MetabolicDataset:
         print('medium bound:',self.medium_bound)
         print('list of reactions in objective:',self.objective)
         print('method:',self.method)
-        print('trainingsize:',self.size)
+        print('training size:',self.size)
         print('list of medium reactions:',len(self.medium))
         print('list of medium levels:',len(self.level_med))
         print('list of medium values:',len(self.value_medium))
@@ -835,50 +779,47 @@ class MetabolicDataset:
             sys.stdout.close()
         
 
-    ## Get ? Change the name please :)
-    ## Not used.
-    def get(self, sample_size=100, varmed=[], reduce=False, verbose=False):
-        # Generate a training set for AMN
-        # Input: sample size
-        # objective_value and variable medium
-        # (optional when experimental datafile)
-        # Output: X,Y (medium and reaction flux values)
-
-        X, Y, inf = {}, {}, {}
+    def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False, verbose=False):
+        """
+        Generate a training set using cobra. The training set is store in the X and Y attributes.
+        """
+        X,Y = [],[]
         for i in range(sample_size):
             if verbose: print('sample:',i)
 
-            # Cobra is run on reduce model where X is already know
+            # Cobra runs on reduce model where X is already known
             if reduce:
                 inf = {r.id: 0 for r in self.model.reactions}
                 for j in range(len(self.medium)):
                     inf[self.medium[j]] = self.X[i,j]
+            else:
+                inf = create_random_medium_cobra(self.model, self.objective, 
+                                         self.medium, self.medium_bound,
+                                         varmed, self.level_med, self.value_medium.copy(), self.ratio_medium,
+                                         method=self.method,verbose=verbose)
+            
+            X.append([inf[m] for m in self.medium])
+            out,_ = run_cobra(self.model,self.objective,inf,method=self.method,verbose=verbose)
+            Y.append(list(out.values()))
 
-            X[i], Y[i] = \
-            get_io_cobra(self.model, self.objective,
-                         self.medium, self.medium_bound, varmed,
-                         self.level_med, self.value_medium, self.ratio_medium,
-                         self.P_out, inf=inf, method=self.method,
-                         verbose=verbose)
-        X = np.asarray(list(X.values()))
-        Y = np.asarray(list(Y.values()))
+        X = np.array(X)
+        Y = np.array(Y)
 
         # In case medium_bound is 'EB' replace X[i] by Y[i] for i in medium
         if self.medium_bound == 'EB':
-            i = 0
-            for rid in self.medium:
-                j = get_index_from_id(rid, self.model.reactions)
-                X[:,i] = Y[:,j]
-                i += 1
-
+            for i, reaction_id in enumerate(self.medium):
+                medium_index = self.model.reactions.index(reaction_id)
+                X[:,i] = Y[:,medium_index]
+            
+        ## old version !
         # In case 'get' is called several times
-        if self.X.shape[0] > 0 and reduce == False:
+        # if self.X.shape[0] > 0 and reduce == False:
+        if add_to_existing_data:
             self.X = np.concatenate((self.X, X), axis=0)
             self.Y = np.concatenate((self.Y, Y), axis=0)
         else:
             self.X, self.Y = X, Y
         self.size = self.X.shape[0]
-
 
 
     def filter_measure(self, objective, verbose=False):
