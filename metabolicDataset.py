@@ -3,174 +3,13 @@ import sys
 import cobra
 import numpy as np
 import pandas as pd
-
+from run_cobra import create_random_medium_cobra, run_cobra
 from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
+
 
 ################################# just pasted #################################
 import pandas
-from sklearn.utils import shuffle
-import math
 
-
-def create_random_medium_cobra(model, objective, 
-                               medium, mediumbound, in_varmed, levmed, valmed, ratmed,
-                               method='FBA', verbose=False,
-                               cobra_min_objective=1.0e-3):
-    # Generate a random input and get Cobra's output
-    # Input:
-    # - model
-    # - objective: the reaction fluxes to optimize
-    # - medium: list of reaction fluxes in medium
-    # - in_varmed: the medium reaction fluxes allowed to change
-    #              (can be empty then varmed are drawn at random)
-    # - levmed: teh number of level a flux can take
-    # - valmed: the maximum value the flux can take
-    # - ratmed: the ration of fluxes turned on
-    # - method: the method used by Cobra
-    # Make sure the medium does not kill the objective
-    # i.e. objective > cobra_min_objective
-    # Ouput:
-    # - Intial reaction fluxes set to medium values
-
-    MAX_iteration = 5 # max numbrer of Cobra's failure allowed
-
-    medini = model.medium.copy()
-    INFLUX = {}
-    for r in model.reactions:
-        INFLUX[r.id] = 0
-
-    # X = actual number of variable medium turned ON
-    L_in_varmed = len(in_varmed) 
-    if L_in_varmed > 0:
-        X = len(in_varmed)
-    else:
-        X = sum(map(lambda x : x>1, levmed)) # total number of variable medium
-        X = np.random.binomial(X, ratmed, 1)[0] if ratmed < 1 else int(ratmed)
-        X = 1 if X == 0 else X
-    
-    # Indices for minmed varmed
-    minmed, varmed = [], []
-    for i in range(len(medium)):
-        if levmed[i] <= 1: # mimimum medium indices
-            minmed.append(i)
-        else:
-            if len(in_varmed) > 0:
-                if medium[i] not in in_varmed:
-                    continue
-            varmed.append(i) # variable medium indices
-
-    modmed = minmed + varmed  if mediumbound == 'EB' else varmed
-    
-    for iteration in range(MAX_iteration):
-        # create random medium choosing X fluxes in varmed at random
-        INFLUX = {k: 0 for k in INFLUX.keys()} # reset
-        model.medium = medini # reset
-        varmed = shuffle(varmed) # that's where random choice occur
-        for i in range(len(minmed)):
-            j = minmed[i]
-            k = medium[j]
-            INFLUX[k], model.medium[k] = valmed[j], valmed[j]
-        for i in range(X):
-            j = varmed[i]
-            k = medium[j]
-            v = (L_in_varmed+1) * np.random.randint(1,high=levmed[j]) * valmed[j]/(levmed[j]-1)
-            INFLUX[k], model.medium[k] = v, v
-
-        # check with cobra
-        try:
-            _, obj = run_cobra(model, objective, INFLUX,
-                               method=method, verbose=False)
-        except:
-            print('Cobra cannot be run start again')
-            treshold, iteration, up, valmed = \
-            init_constrained_objective(objective_value, in_treshold, 
-                            modmed, valmed, verbose=verbose)
-            continue
-            
-        if obj < cobra_min_objective:
-            continue # must have some objective
-
-        # We have a solution
-        if verbose:
-            p = [ medium[varmed[i]] for i in range(X)]
-            print('pass (varmed, obj):', p, obj)
-        break
-
-
-
-
-    model.medium = medini # reset medium
-    return INFLUX
-
-
-def run_cobra(model, objective, IN, method='FBA', verbose=False,
-              objective_fraction=0.75, cobra_min_flux=1.0e-8):
-    # Inputs:
-    # - model
-    # - objective: a list of reactions (first two only are considered)
-    # - IN: Initial values for all reaction fluxes
-    # - method: FBA or pFBA
-    # run FBA optimization to compute recation fluxes on the provided model
-    # set the medium using values in dictionary IN.
-    # When 2 objectives are given one first maximize the first objective (obj1).
-    # then one set the upper and lower bounds for that objective to
-    # objective_fraction * obj1 (e.g. objective_fraction = 0.75) and maximize
-    # for the second objective
-    # Outputs:
-    # - FLUX, the reaction fluxes compyted by FBA for all reactions
-    # - The value for the objective
-
-    # set the medium and objective
-
-    medium = model.medium # This is the model medium
-    medini = medium.copy()
-
-    for k in medium.keys(): # Reset the medium
-        medium[k] = 0
-    for k in IN.keys(): # Additional cmpds added to medium
-        if k in medium.keys():
-            medium[k] = float(IN[k])
-    model.medium = medium
-
-    # run FBA for primal objective
-    model.objective = objective[0]
-    solution = cobra.flux_analysis.pfba(model) \
-    if method == 'pFBA' else model.optimize()
-    solution_val = solution.fluxes[objective[0]]
-    if verbose:
-        print('primal objectif =', objective, method, solution_val)
-
-    # run FBA for second objective
-    # primal objectif is set to a fraction of its value
-    if len(objective) > 1:
-        obj = model.reactions.get_by_id(objective[0])
-        obj_lb, obj_ub = obj.lower_bound, obj.upper_bound
-        obj.lower_bound = objective_fraction * solution_val
-        obj.upper_bound = objective_fraction * solution_val
-        model.objective = objective[1]
-        solution = cobra.flux_analysis.pfba(model) \
-        if method == 'pFBA' else model.optimize()
-        solution_val = solution.fluxes[objective[1]]
-        if verbose:
-            print('second objectif =', objective, method, solution_val)
-
-        # reset bounds and objective to intial values
-        obj.lower_bound, obj.upper_bound = obj_lb, obj_ub
-        model.objective = objective[0]
-
-    # get the fluxes for all model reactio
-    FLUX = IN.copy()
-    for x in model.reactions:
-        if x.id in FLUX.keys():
-            FLUX[x.id] = solution.fluxes[x.id]
-            if math.fabs(float(FLUX[x.id])) < cobra_min_flux: # !!!
-                FLUX[x.id] = 0
-
-    # Reset medium
-    model.medium = medini
-
-
-    return FLUX, solution_val
 
 
 
@@ -497,6 +336,7 @@ class MetabolicDataset:
 
         ## Should be called cobra_model !
         self.model = cobra.io.read_sbml_model(cobra_name+'.xml')
+        print(type(self.model.medium))
         self.reduce = False
         self.all_matrices = True
 
@@ -529,26 +369,19 @@ class MetabolicDataset:
             print('value_medium:',self.value_medium)
             print('ratio_medium:',self.ratio_medium)
 
-
-        def get_objective(model):
-            # Get the reaction carring the objective
-            # Someone please tell me if there is
-            # a clearner way in Cobra to get
-            # the objective reaction
-
-            r = str(model.objective.expression)
-            r = r.split()
-            r = r[0].split('*')
-            obj_id = r[1]
-
-            # line below crash if does not exist
-            r = model.reactions.get_by_id(obj_id)
-
-            return obj_id
-
+    
         # set objective and measured reactions lists
-        self.objective = [get_objective(self.model)] if objective == [] else objective
-        self.measure = [r.id for r in self.model.reactions] if measure == [] else measure
+        if objective:
+            self.objective = objective
+        else:
+            self.objective = [self.model.objective.to_json()["expression"]['args'][0]['args'][1]["name"]]
+        
+        if measure:
+            self.measure = measure
+        else:
+            self.measure = [r.id for r in self.model.reactions]
+
+
 
         if verbose:
             print('objective: ',self.objective)
@@ -561,7 +394,7 @@ class MetabolicDataset:
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
 
-
+    """
     def check_cobra_name(self, cobra_name):
         if cobra_name == '':
             sys.exit('Give a training file or a appropriate cobra_name.')
@@ -575,10 +408,10 @@ class MetabolicDataset:
         if not os.path.isfile(medium_name+'.csv'):
             print(medium_name)
             sys.exit('medium file not found')
+    """
 
 
 
-    ## Not used.
     def reduce_and_run(self,verbose=False):
         # reduce a model recompute matrices and rerun cobra
         # with the provided training set
@@ -787,7 +620,7 @@ class MetabolicDataset:
         for i in range(sample_size):
             if verbose: print('sample:',i)
 
-            # Cobra runs on reduce model where X is already known
+            # Cobra runs on reduce model where X is already known ## EXP !!!
             if reduce:
                 inf = {r.id: 0 for r in self.model.reactions}
                 for j in range(len(self.medium)):
@@ -820,6 +653,7 @@ class MetabolicDataset:
         else:
             self.X, self.Y = X, Y
         self.size = self.X.shape[0]
+
 
 
     def filter_measure(self, objective, verbose=False):
