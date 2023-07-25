@@ -5,7 +5,8 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split, KFold
-from metabolicDataset import MetabolicDataset
+# from metabolicDataset import MetabolicDataset
+from metabolicDataset2 import MetabolicDataset
 from returnStats import ReturnStats
 
 
@@ -103,8 +104,12 @@ class NeuralModel:
         linked to the dataset.
         """
 
+        ## old !!
         self.check_training_file()
         parameter = MetabolicDataset(training_file = self.training_file)
+
+
+
 
         self.medium_bound = parameter.medium_bound
         self.level_med = parameter.level_med
