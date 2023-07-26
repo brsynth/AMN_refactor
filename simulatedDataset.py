@@ -1,66 +1,24 @@
-from metabolicDataset2 import MetabolicDataset
-
-
-import os
-import sys
 import cobra
 import numpy as np
 import pandas as pd
+from metabolicDataset import MetabolicDataset
 from run_cobra import create_random_medium_cobra, run_cobra
 from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
 
 class SimulatedDataset(MetabolicDataset):
 
-    def __init__(self,
-                 training_file='',
-                 cobra_name='',
-                 medium_name='', 
-                 medium_bound='EB', 
-                 medium_size=-1,
-                 objective=[], 
-                 method='FBA',
-                 measure=[], 
-                 verbose=False,
-                 sample_size=100):
-        
-        MetabolicDataset.__init__(self,
-                 training_file=training_file,
-                 cobra_name=cobra_name,
-                 medium_name=medium_name, 
-                 medium_bound=medium_bound, 
-                 medium_size=medium_size,
-                 objective=objective, 
-                 method=method,
-                 measure=measure, 
-                 verbose=False)
+
+    def __init__(self, sample_size=100, **kwargs):
+        MetabolicDataset.__init__(self, **kwargs)
+
 
         # get parameter for variation on medium simulation 
-        df_medium = pd.read_csv(medium_name + ".csv",index_col="name")
-
+        df_medium = pd.read_csv(self.medium_name + ".csv",index_col="name")
         self.medium = df_medium.columns.to_list()
         self.level_med = df_medium.loc["level"].values
         self.value_medium = df_medium.loc["max_value"].values
         self.ratio_medium = df_medium.loc["ratio_drawing"][0]
 
-
-        if objective:
-            self.objective = objective
-        else:
-            self.objective = [self.model.objective.to_json()["expression"]['args'][0]['args'][1]["name"]]
-        
-        if measure:
-            self.measure = measure
-        else:
-            self.measure = [r.id for r in self.model.reactions]
-
-
-        if verbose:
-            print('medium:',self.medium)
-            print('level_med:',self.level_med)
-            print('value_medium:',self.value_medium)
-            print('ratio_medium:',self.ratio_medium)
-            print('objective: ',self.objective)
-            print('measurements size: ',len(self.measure))
 
         # compute matrices and objective vector for AMN
         self.S = np.asarray(cobra.util.array.create_stoichiometric_matrix(self.model))
@@ -69,11 +27,11 @@ class SimulatedDataset(MetabolicDataset):
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
 
-        self.get_simulated_data(sample_size=sample_size)
+        self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
 
 
 
-    def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False, verbose=False):
+    def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False,verbose=False):
         """
         Generate a training set using cobra. The training set is store in the X and Y attributes.
         """
@@ -105,7 +63,7 @@ class SimulatedDataset(MetabolicDataset):
                 medium_index = self.model.reactions.index(reaction_id)
                 X[:,i] = Y[:,medium_index]
             
-        ## old version !
+        ## old version !  
         # In case 'get' is called several times
         # if self.X.shape[0] > 0 and reduce == False:
         if add_to_existing_data:

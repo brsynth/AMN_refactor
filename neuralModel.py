@@ -5,8 +5,7 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split, KFold
-# from metabolicDataset import MetabolicDataset
-from metabolicDataset2 import MetabolicDataset
+from metabolicDataset import MetabolicDataset
 from returnStats import ReturnStats
 
 
@@ -105,7 +104,7 @@ class NeuralModel:
         """
 
         ## old !!
-        self.check_training_file()
+        # self.check_training_file()
         parameter = MetabolicDataset(training_file = self.training_file)
 
 
@@ -142,13 +141,15 @@ class NeuralModel:
 
         self.P_out, self.Y = parameter.filter_measure(self.objective, verbose=verbose)
         
-
+    """
     def check_training_file(self):
         if self.training_file == None:
             sys.exit('Please give a training file')
         if not os.path.isfile(self.training_file+'.npz'):
             print(self.training_file+'.npz')
             sys.exit('training file is not found')
+    """
+        
 
 
 
