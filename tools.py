@@ -47,7 +47,7 @@ def compute_P_in(S, medium, model_reactions):
     return P_in
 
 def compute_P_out(S, measure, model_reactions):
-    n, n_out = S.shape[1],len(measure)
+    n_out, n = len(measure), S.shape[1]
     P_out = np.zeros((n_out,n))
     for i, rid in enumerate(measure):
         j = model_reactions.index(rid)

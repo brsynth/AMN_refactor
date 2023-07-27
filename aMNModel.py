@@ -41,7 +41,7 @@ class AMNModel(NeuralModel):
         """
         raise NotImplementedError
     
-
+    
     def compute_loss(self, x, y_true, y_pred, verbose=False):
         """
         This method compute a loss on constraint on y_pred. Remind that y_pred

@@ -1,9 +1,10 @@
-from aMNModel import AMNModel
-import numpy as np
+import os
 import keras
-from keras.utils.generic_utils import CustomObjectScope
+import numpy as np
 import tensorflow as tf
-from keras.layers import concatenate
+from keras.layers import concatenate,RNN
+from keras.utils.generic_utils import CustomObjectScope
+from aMNModel import AMNModel
 from loss import SV_loss, V_in_loss, V_pos_loss
 
 
@@ -24,8 +25,6 @@ class AMNWtModel(AMNModel):
             for j in range(self.timestep):
                 X_new[i][j] = X[i]
 
-        self.input_dim = self.timestep
-
         return X_new, Y
 
 
@@ -38,7 +37,7 @@ class AMNWtModel(AMNModel):
         def Wt_layers(inputs, parameter, verbose=False):
             # Build and return AMN layers using an RNN cell
             with CustomObjectScope({'RNNCell': RNNCell}):
-                rnn = keras.layers.RNN(RNNCell(parameter))
+                rnn = RNN(RNNCell(parameter))
             V = rnn(inputs)
             Vin = inputs[:,0,:]
             return self.output_AMNWt(V, Vin,  verbose=verbose)
@@ -79,7 +78,6 @@ class AMNWtModel(AMNModel):
         P_inV = V_in_loss(V, self.P_in, Vin, self.medium_bound) # P_in const
         V_pos = V_pos_loss(V) # V ≥ 0 const
         outputs = concatenate([P_outV, SV, P_inV, V_pos, V], axis=1)
-        self.output_dim = outputs.shape[1]
         if verbose:
             print('AMN output shapes for P_outV, SV, P_inV, Vpos, V, outputs', \
                   P_outV.shape, SV.shape, P_inV.shape, V_pos.shape,\
@@ -90,10 +88,33 @@ class AMNWtModel(AMNModel):
         return x[:,0,:]
     
     def nb_columns_pred(self):
-        return self.Y.shape[1] + 3 + self.S.shape[1]
+        return self.Y.shape[1] + 3 + self.S.shape[1] 
     
     
+    def printout_by_type(self):
+        print('training file:', self.training_file)
+        print('model type:', "AMNWt")
+        print('model scaler:', self.scaler)
+        print('model medium bound:', self.medium_bound)
+        print('timestep:', self.timestep)
+        print('training set size', self.X.shape, self.Y.shape)
 
+        if self.n_hidden > 0:
+            print('nbr hidden layer:', self.n_hidden)
+            print('hidden layer size:', self.hidden_dim)
+            print('activation function:', self.activation)
+
+        if self.epochs > 0:
+            print('training epochs:', self.epochs)
+            print('training regression:', self.regression)
+            print('training learn rate:', self.train_rate)
+            print('training droP_out:', self.droP_out)
+            print('training batch size:', self.batch_size)
+            print('training validation iter:', self.n_iter)
+            print('training xfold:', self.xfold)
+            print('training early stopping:', self.early_stopping)
+    
+    
 
 
 
@@ -184,7 +205,3 @@ class RNNCell(keras.layers.Layer):
         #config.update({'parameter': self.parameter.__dict__})
         return config
     
-
-
-    
-
