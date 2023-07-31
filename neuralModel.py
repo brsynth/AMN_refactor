@@ -8,12 +8,13 @@ from returnStats import ReturnStats
 from metabolicDataset import MetabolicDataset
 
 
+
 class NeuralModel:
     """
     This class gives the general structure to run hybrid models. Hybrid model
     here refers to the article: ##ref.
     This class contains information on dataset we use. The dataset
-    is load from two file : <training_file>.xml and <training_file>.npz.
+    is load from two file : <dataset_file>.xml and <dataset_file>.npz.
     This class contains a tensorflow model, stored in the model attribute.
     This class NeuralModel manage the preprocessing on dataset, train, test
     and evaluate model. Those methods will depend on the model type. 
@@ -21,7 +22,7 @@ class NeuralModel:
     """
 
     def __init__(self,
-                 training_file=None,
+                 dataset_file=None,
                  objective=None, 
                  scaler=False,
                  n_hidden=0, 
@@ -39,8 +40,8 @@ class NeuralModel:
                  early_stopping=False,
                  verbose=False,
                 ):
-
-        dataset = MetabolicDataset(training_file = training_file)
+        
+        dataset = MetabolicDataset(dataset_file=dataset_file)
 
         # data
         self.Y_all = dataset.Y_all # Keep all the Y in case objective is given
@@ -75,7 +76,7 @@ class NeuralModel:
         self.early_stopping = early_stopping
 
         # metabolic data
-        self.training_file = training_file
+        self.dataset_file = dataset_file
         self.objective = objective
         self.S = dataset.S
         self.P_in = dataset.P_in 

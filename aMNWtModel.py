@@ -92,7 +92,7 @@ class AMNWtModel(AMNModel):
     
     
     def printout_by_type(self):
-        print('training file:', self.training_file)
+        print('dataset file:', self.dataset_file)
         print('model type:', "AMNWt")
         print('model scaler:', self.scaler)
         print('model medium bound:', self.medium_bound)

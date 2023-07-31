@@ -15,7 +15,7 @@ class ExperimentalDataset(MetabolicDataset):
 
         
         # get X and Y from the medium file
-        df_medium = pd.read_csv(self.medium_name + ".csv", header=0)
+        df_medium = pd.read_csv(self.medium_file, header=0)
         medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
         growth_rate_column = [c for c in df_medium.columns if "GR" in c]
         self.medium = medium_column

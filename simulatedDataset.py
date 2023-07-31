@@ -13,7 +13,7 @@ class SimulatedDataset(MetabolicDataset):
 
 
         # get parameter for variation on medium simulation 
-        df_medium = pd.read_csv(self.medium_name + ".csv",index_col="name")
+        df_medium = pd.read_csv(self.medium_file,index_col="name")
         self.medium = df_medium.columns.to_list()
         self.level_med = df_medium.loc["level"].values
         self.value_medium = df_medium.loc["max_value"].values
