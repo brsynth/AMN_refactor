@@ -8,7 +8,7 @@ from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
 class SimulatedDataset(MetabolicDataset):
 
 
-    def __init__(self, sample_size=100, **kwargs):
+    def __init__(self, experimental_file='', sample_size=100, **kwargs):
         MetabolicDataset.__init__(self, **kwargs)
 
 
@@ -19,6 +19,30 @@ class SimulatedDataset(MetabolicDataset):
         self.value_medium = df_medium.loc["max_value"].values
         self.ratio_medium = df_medium.loc["ratio_drawing"][0]
 
+        if experimental_file:
+            # get X and Y from the medium file
+            df_medium = pd.read_csv(experimental_file, header=0)
+            medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
+  
+            X = df_medium[medium_column].values
+
+            # Create varmed the list of variable medium based on experimental file
+            medium_variation = {}
+            for i in range(X.shape[0]):
+                medium_variation[i] = []
+                for j in range(X.shape[1]):
+                    if self.level_med[j] > 1 and X[i,j] > 0:
+                        medium_variation[i].append(self.medium[j])
+            medium_variation = list(medium_variation.values())
+
+            # Get a Cobra training set constrained by varmed
+            for i in range(X.shape[0]): 
+                self.get_simulated_data(sample_size=20, 
+                                        varmed=medium_variation[i], 
+                                        add_to_existing_data = i, 
+                                        verbose=True) 
+        else : 
+            self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
 
         # compute matrices and objective vector for AMN
         self.S = np.asarray(cobra.util.array.create_stoichiometric_matrix(self.model))
@@ -26,10 +50,7 @@ class SimulatedDataset(MetabolicDataset):
         self.M2V = compute_M2V(self.S)
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
-
-        self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
-
-
+        
 
     def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False,verbose=False):
         """

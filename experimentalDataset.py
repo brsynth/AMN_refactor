@@ -13,7 +13,6 @@ class ExperimentalDataset(MetabolicDataset):
         MetabolicDataset.__init__(self, **kwargs)
 
 
-        
         # get X and Y from the medium file
         df_medium = pd.read_csv(self.medium_file, header=0)
         medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
@@ -36,3 +35,7 @@ class ExperimentalDataset(MetabolicDataset):
         self.M2V = compute_M2V(self.S) ## Could be donne in the Neural model !
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
+
+
+
+        
