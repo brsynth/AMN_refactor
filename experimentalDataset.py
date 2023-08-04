@@ -12,7 +12,6 @@ class ExperimentalDataset(MetabolicDataset):
     def __init__(self, **kwargs):
         MetabolicDataset.__init__(self, **kwargs)
 
-
         # get X and Y from the medium file
         df_medium = pd.read_csv(self.medium_file, header=0)
         medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
@@ -20,14 +19,6 @@ class ExperimentalDataset(MetabolicDataset):
         self.medium = medium_column
         self.X = df_medium[medium_column].values
         self.Y= df_medium[growth_rate_column].values
-
-
-        ## Quite useless variable in this context !
-        self.size = self.Y.shape[0] ## What is the purpose of this parameter !!!
-        self.level_med = [] ## useless here !
-        self.value_medium = [] ##u seless here !
-        self.ratio_medium = 0 ## useless here !
-
 
         # compute matrices and objective vector for AMN
         self.S = np.asarray(cobra.util.array.create_stoichiometric_matrix(self.model))

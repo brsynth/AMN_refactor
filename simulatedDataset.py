@@ -1,8 +1,9 @@
 import cobra
 import numpy as np
 import pandas as pd
-from metabolicDataset import MetabolicDataset
+import cobra.manipulation as manip
 from run_cobra import create_random_medium_cobra, run_cobra
+from metabolicDataset import MetabolicDataset
 from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
 
 class SimulatedDataset(MetabolicDataset):
@@ -19,11 +20,10 @@ class SimulatedDataset(MetabolicDataset):
         self.value_medium = df_medium.loc["max_value"].values
         self.ratio_medium = df_medium.loc["ratio_drawing"][0]
 
+
         if experimental_file:
-            # get X and Y from the medium file
             df_medium = pd.read_csv(experimental_file, header=0)
             medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
-  
             X = df_medium[medium_column].values
 
             # Create varmed the list of variable medium based on experimental file
@@ -45,12 +45,26 @@ class SimulatedDataset(MetabolicDataset):
             self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
 
         # compute matrices and objective vector for AMN
-        self.S = np.asarray(cobra.util.array.create_stoichiometric_matrix(self.model))
+        self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
         self.V2M = compute_V2M(self.S)
         self.M2V = compute_M2V(self.S)
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
         self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
+
+
+    def save(self, dataset_dir, dataset_name, verbose=False, reduce=False):
+
+        if reduce:
+            self.reduce_and_run(verbose=verbose) 
+            
+            self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
+            self.V2M = compute_V2M(self.S)
+            self.M2V = compute_M2V(self.S)
+            self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
+            self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
         
+        MetabolicDataset.save(self,dataset_dir, dataset_name, verbose=verbose)
+
 
     def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False,verbose=False):
         """
@@ -83,14 +97,55 @@ class SimulatedDataset(MetabolicDataset):
             for i, reaction_id in enumerate(self.medium):
                 medium_index = self.model.reactions.index(reaction_id)
                 X[:,i] = Y[:,medium_index]
-            
-        ## old version !  
-        # In case 'get' is called several times
-        # if self.X.shape[0] > 0 and reduce == False:
+        
         if add_to_existing_data:
             self.X = np.concatenate((self.X, X), axis=0)
             self.Y = np.concatenate((self.Y, Y), axis=0)
         else:
             self.X, self.Y = X, Y
         self.size = self.X.shape[0]
+
+
+    def reduce_and_run(self,verbose=False):
+        # reduce a model recompute matrices and rerun cobra
+        # with the provided training set
+        measure = [] if len(self.measure) == len(self.reactions) \
+        else self.measure
+
+
+        self.model = self.reduce_model(self.model, self.medium, measure,
+                                  self.Y, verbose=verbose)
+        
+
+        self.measure = [r for r in self.reactions] \
+        if measure == [] else measure
+
+        self.get_simulated_data(sample_size=self.size, reduce=True, verbose=verbose)
+
+
+    def reduce_model(self, model, medium, measure, flux, verbose=False):
+    # Remove all reactions not in medium having a zero flux
+    # Input: the model, the medium, the flux vector (a 2D array)
+    # Output: the reduce model
+
+    # Collect reaction to be removed
+        remove=[]
+        for j in range(flux.shape[1]):
+            if np.count_nonzero(flux[:,j]) == 0 and model.reactions[j].id not in medium and model.reactions[j].id not in measure:
+                remove.append(model.reactions[j])
+                
+
+        # Actual deletion
+        model.remove_reactions(remove)
+        manip.delete.prune_unused_reactions(model)
+        for m in model.metabolites:
+            if len(m.reactions) == 0:
+                model.remove_metabolites(m)
+        manip.delete.prune_unused_metabolites(model)
+        print('reduced numbers of metabolites and reactions:',
+              len(model.metabolites), len(model.reactions))
+        
+        self.reactions = [r.id for r in list(model.reactions)]
+
+        return model
 
