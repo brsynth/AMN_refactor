@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from metabolicDataset import MetabolicDataset
 from run_cobra import create_random_medium_cobra, run_cobra
-from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
+from tools import compute_P_in, compute_V2M, compute_M2V
 
 class ExperimentalDataset(MetabolicDataset):
 
@@ -19,14 +19,11 @@ class ExperimentalDataset(MetabolicDataset):
         self.medium = medium_column
         self.X = df_medium[medium_column].values
         self.Y= df_medium[growth_rate_column].values
+        self.method_generation ="EXPERIMENTAL"
 
-        # compute matrices and objective vector for AMN
+
+        # compute matrices used in AMN
         self.S = np.asarray(cobra.util.array.create_stoichiometric_matrix(self.model))
         self.V2M = compute_V2M(self.S) ## Could be donne in the Neural model !
         self.M2V = compute_M2V(self.S) ## Could be donne in the Neural model !
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
-        self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
-
-
-
-        

@@ -4,14 +4,13 @@ import pandas as pd
 import cobra.manipulation as manip
 from run_cobra import create_random_medium_cobra, run_cobra
 from metabolicDataset import MetabolicDataset
-from tools import compute_P_in, compute_P_out, compute_V2M, compute_M2V
+from tools import compute_P_in, compute_V2M, compute_M2V
 
 class SimulatedDataset(MetabolicDataset):
 
 
-    def __init__(self, experimental_file='', sample_size=100, **kwargs):
+    def __init__(self, experimental_file='', sample_size=100, cobra_objective=[], **kwargs):
         MetabolicDataset.__init__(self, **kwargs)
-
 
         # get parameter for variation on medium simulation 
         df_medium = pd.read_csv(self.medium_file,index_col="name")
@@ -19,8 +18,13 @@ class SimulatedDataset(MetabolicDataset):
         self.level_med = df_medium.loc["level"].values
         self.value_medium = df_medium.loc["max_value"].values
         self.ratio_medium = df_medium.loc["ratio_drawing"][0]
+        self.method_generation ="SIMULATED"
 
 
+        # Default objective for cobra is the biomass
+        self.cobra_objective = cobra_objective if cobra_objective else\
+                         [self.model.objective.to_json()["expression"]['args'][0]['args'][1]["name"]]
+        
         if experimental_file:
             df_medium = pd.read_csv(experimental_file, header=0)
             medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
@@ -44,12 +48,12 @@ class SimulatedDataset(MetabolicDataset):
         else : 
             self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
 
-        # compute matrices and objective vector for AMN
+        # compute matrices used in AMN
         self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
         self.V2M = compute_V2M(self.S)
         self.M2V = compute_M2V(self.S)
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
-        self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
+        # self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
 
 
     def save(self, dataset_dir, dataset_name, verbose=False, reduce=False):
@@ -61,7 +65,7 @@ class SimulatedDataset(MetabolicDataset):
             self.V2M = compute_V2M(self.S)
             self.M2V = compute_M2V(self.S)
             self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
-            self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
+            # self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
         
         MetabolicDataset.save(self,dataset_dir, dataset_name, verbose=verbose)
 
@@ -80,13 +84,13 @@ class SimulatedDataset(MetabolicDataset):
                 for j in range(len(self.medium)):
                     inf[self.medium[j]] = self.X[i,j]
             else:
-                inf = create_random_medium_cobra(self.model, self.objective, 
+                inf = create_random_medium_cobra(self.model, self.cobra_objective, 
                                          self.medium, self.medium_bound,
                                          varmed, self.level_med, self.value_medium.copy(), self.ratio_medium,
                                          method=self.method,verbose=verbose)
             
             X.append([inf[m] for m in self.medium])
-            out,_ = run_cobra(self.model,self.objective,inf,method=self.method,verbose=verbose)
+            out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
             Y.append(list(out.values()))
 
         X = np.array(X)
@@ -112,11 +116,9 @@ class SimulatedDataset(MetabolicDataset):
         measure = [] if len(self.measure) == len(self.reactions) \
         else self.measure
 
-
         self.model = self.reduce_model(self.model, self.medium, measure,
                                   self.Y, verbose=verbose)
         
-
         self.measure = [r for r in self.reactions] \
         if measure == [] else measure
 
@@ -134,7 +136,6 @@ class SimulatedDataset(MetabolicDataset):
             if np.count_nonzero(flux[:,j]) == 0 and model.reactions[j].id not in medium and model.reactions[j].id not in measure:
                 remove.append(model.reactions[j])
                 
-
         # Actual deletion
         model.remove_reactions(remove)
         manip.delete.prune_unused_reactions(model)
@@ -146,6 +147,4 @@ class SimulatedDataset(MetabolicDataset):
               len(model.metabolites), len(model.reactions))
         
         self.reactions = [r.id for r in list(model.reactions)]
-
         return model
-

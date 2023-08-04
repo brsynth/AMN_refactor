@@ -40,7 +40,7 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
     model.medium = medium
 
     # run FBA for primal objective
-    model.objective = objective[0]
+    model.objective = objective[0] 
     solution = cobra.flux_analysis.pfba(model) if method == 'pFBA' else model.optimize()
     solution_val = solution.fluxes[objective[0]]
     if verbose:

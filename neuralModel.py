@@ -6,6 +6,9 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split, KFold
 from returnStats import ReturnStats
 from metabolicDataset import MetabolicDataset
+from tools import  compute_P_out, compute_V2M, compute_M2V
+
+
 
 
 
@@ -22,8 +25,8 @@ class NeuralModel:
     """
 
     def __init__(self,
-                 dataset_file=None,
-                 objective=None, 
+                 dataset_file,
+                 objective=None,
                  scaler=False,
                  n_hidden=0, 
                  hidden_dim=0, # default no hidden layer
@@ -44,14 +47,11 @@ class NeuralModel:
         dataset = MetabolicDataset(dataset_file=dataset_file)
 
         # data
-        self.Y_all = dataset.Y_all # Keep all the Y in case objective is given
         self.X = dataset.X
-        self.Y = dataset.Y
         self.X_train = None
         self.Y_train = None
         self.X_test = None
         self.Y_test = None
-        self.Y_all = None ## ?
 
         # keras model architecture
         self.model = None 
@@ -77,16 +77,26 @@ class NeuralModel:
 
         # metabolic data
         self.dataset_file = dataset_file
-        self.objective = objective
         self.S = dataset.S
         self.P_in = dataset.P_in 
         self.V2M = dataset.V2M 
         self.M2V = dataset.M2V 
 
-        ## issue with the Y overwriting !
-        self.P_out, self.Y = dataset.filter_measure(self.objective, verbose=verbose)
 
- 
+        objective_ = objective if objective else dataset.measure
+        self.P_out = compute_P_out(dataset.S, objective_, list(dataset.reactions))
+        # print(self.P_out)
+
+        if dataset.method_generation == "SIMULATED":
+            self.Y = np.matmul(dataset.Y,np.transpose(self.P_out))
+        elif dataset.method_generation == "EXPERIMENTAL":
+            self.Y = dataset.Y
+
+        if verbose:
+            # print('number of reactions: ', dataset.S.shape[1], dataset.Y_all.shape[1])
+            print('number of metabolites: ', dataset.S.shape[0])
+            print('filtered measurements size: ',self.Y.shape[1])
+
 
     def train_test_split(self, test_size, random_state):
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X, 
@@ -226,7 +236,6 @@ class NeuralModel:
     def nb_columns_pred(self):
         """This method depend on the model type."""
         raise NotImplementedError
-    
 
     def model_input(self, X, Y, verbose=False):
         """This method depend on the model type."""
