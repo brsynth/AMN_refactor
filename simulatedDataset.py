@@ -8,7 +8,6 @@ from tools import compute_P_in, compute_V2M, compute_M2V
 
 class SimulatedDataset(MetabolicDataset):
 
-
     def __init__(self, experimental_file='', sample_size=100, cobra_objective=[], **kwargs):
         MetabolicDataset.__init__(self, **kwargs)
 
@@ -41,7 +40,7 @@ class SimulatedDataset(MetabolicDataset):
 
             # Get a Cobra training set constrained by varmed
             for i in range(X.shape[0]): 
-                self.get_simulated_data(sample_size=20, 
+                self.get_simulated_data(sample_size=sample_size,
                                         varmed=medium_variation[i], 
                                         add_to_existing_data = i, 
                                         verbose=True) 

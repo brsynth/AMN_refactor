@@ -17,7 +17,7 @@ class MetabolicDataset:
     """
     def __init__(self,
                  dataset_file='',
-                 input_cobra_file='',
+                 cobra_file='',
                  medium_file='', 
                  medium_bound='EB', 
                  method='FBA',
@@ -30,7 +30,7 @@ class MetabolicDataset:
             return
 
         # Need the cobra model to create the dataset
-        self.model = cobra.io.read_sbml_model(input_cobra_file)
+        self.model = cobra.io.read_sbml_model(cobra_file)
         self.reactions = [r.id for r in list(self.model.reactions)]
         self.measure = measure if measure else self.reactions.copy()
         self.medium_file = medium_file
