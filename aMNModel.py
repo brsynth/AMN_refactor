@@ -1,10 +1,7 @@
 import numpy as np
 import tensorflow as tf
-from tools import MaxScaler
 from neuralModel import NeuralModel
 from loss import SV_loss, V_in_loss, V_pos_loss
-
-
 
 
 class AMNModel(NeuralModel):
@@ -15,17 +12,12 @@ class AMNModel(NeuralModel):
         
     def model_input(self, X, Y, verbose=False):
         """
-        This method normalize X if scaler attribute is True. Then it add three
-        zero columns to Y making the loss to minimize SV, P_in and V≥0
-        constraint easier to compute. 
-        Finally, it call the model_type_input method to prepare X and Y as
+        This method add three zero columns to Y making the loss to minimize
+        SV, P_in and V≥0 constraint easier to compute. 
+        Then, it call the model_type_input method to prepare X and Y as
         input for the model, depending on its type.
         """
-
-        if self.scaler != 0: 
-            X, self.scaler = MaxScaler(X) 
-        if verbose: print('AMN scaler', self.scaler)
-
+        
         Y = np.concatenate((Y, np.zeros((len(Y),3))), axis=1)
 
         # Preparing X and Y according to the model type.
@@ -33,6 +25,11 @@ class AMNModel(NeuralModel):
         if verbose: print(self.model_type + ' shape', X.shape, Y.shape)        
 
         return X,Y
+    
+
+    def preprocessing_for_specific_model(self):
+        self.X_train, self.Y_train = self.model_input(self.X_train, self.Y_train)
+        self.X_test, self.Y_test = self.model_input(self.X_test, self.Y_test)
     
 
     def model_input_by_type(self, X, Y):

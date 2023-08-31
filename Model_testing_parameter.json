@@ -1,0 +1,104 @@
+{
+    "e_coli_core_UB_100": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/e_coli_core_UB_100.npz",
+            "objective": [
+                "BIOMASS_Ecoli_core_w_GAM"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 200,
+            "batch_size": 7
+        }
+    },
+    "e_coli_core_UB": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/e_coli_core_UB.npz",
+            "objective": [
+                "BIOMASS_Ecoli_core_w_GAM"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 20,
+            "batch_size": 7
+        }
+    },
+    "e_coli_core_EB": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/e_coli_core_EB.npz",
+            "objective": [
+                "BIOMASS_Ecoli_core_w_GAM"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 50,
+            "batch_size": 7
+        }
+    },
+    "IJN1463_10_UB": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/IJN1463_10_UB.npz",
+            "objective": [
+                "BIOMASS_KT2440_WT3"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 20,
+            "batch_size": 20
+        }
+    },
+    "iML1515_EXP_UB": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/iML1515_EXP_UB.npz",
+            "objective": [
+                "BIOMASS_Ec_iML1515_core_75p37M"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 200,
+            "batch_size": 7
+        }
+    },
+    "IJN1463_EXP_UB_Anne": {
+        "run_model_parameter": {
+            "seed": 10,
+            "file": "./Dataset/IJN1463_EXP_UB_Anne.npz",
+            "objective": [
+                "BIOMASS_KT2440_WT3"
+            ],
+            "xfold": 5
+        },
+        "default_hyperparameters": {
+            "timestep": 4,
+            "n_hidden": 1,
+            "hidden_dim": 50,
+            "epochs": 200,
+            "batch_size": 7
+        }
+    }
+}

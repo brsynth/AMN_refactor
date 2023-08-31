@@ -6,7 +6,7 @@ from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split, KFold
 from returnStats import ReturnStats
 from metabolicDataset import MetabolicDataset
-from tools import  compute_P_out, compute_V2M, compute_M2V
+from tools import  compute_P_out
 
 
 
@@ -27,15 +27,13 @@ class NeuralModel:
     def __init__(self,
                  dataset_file,
                  objective=None,
-                 scaler=False,
+                #  scaler=False,
                  n_hidden=0, 
                  hidden_dim=0, # default no hidden layer
                  activation='relu', 
                  timestep=0, 
-                 learn_rate=1.0, 
                  regression=True, 
                  epochs=0, 
-                 train_rate=1e-3, 
                  droP_out=0.25, 
                  batch_size=5,
                  n_iter=0, 
@@ -53,7 +51,7 @@ class NeuralModel:
         self.X_test = None
         self.Y_test = None
 
-        # keras model architecture
+        # Keras model architecture
         self.model = None 
         self.medium_bound = dataset.medium_bound
         self.hidden_dim = hidden_dim
@@ -61,14 +59,9 @@ class NeuralModel:
         self.timestep = timestep
         self.activation = activation
 
-        # preprocessing
-        self.scaler = float(scaler) # From bool to float ## Why ???
-
         # Training parameters
-        self.learn_rate = learn_rate
         self.epochs = epochs
         self.regression = regression
-        self.train_rate = train_rate
         self.droP_out = droP_out
         self.batch_size = batch_size
         self.n_iter = n_iter
@@ -85,7 +78,6 @@ class NeuralModel:
 
         objective_ = objective if objective else dataset.measure
         self.P_out = compute_P_out(dataset.S, objective_, list(dataset.reactions))
-        # print(self.P_out)
 
         if dataset.method_generation == "SIMULATED":
             self.Y = np.matmul(dataset.Y,np.transpose(self.P_out))
@@ -93,7 +85,6 @@ class NeuralModel:
             self.Y = dataset.Y
 
         if verbose:
-            # print('number of reactions: ', dataset.S.shape[1], dataset.Y_all.shape[1])
             print('number of metabolites: ', dataset.S.shape[0])
             print('filtered measurements size: ',self.Y.shape[1])
 
@@ -103,6 +94,10 @@ class NeuralModel:
                                                                                 self.Y, 
                                                                                 test_size=test_size, 
                                                                                 random_state=random_state)
+        
+    def preprocess(self,scaler):
+        self.X_train = scaler.fit_transform(self.X_train)
+        self.X_test = scaler.transform(self.X_test)
 
 
     def train_evaluate(self, verbose=False):
@@ -113,8 +108,8 @@ class NeuralModel:
         to the best model encountered, ie. best Q2/Acc on the test folds.
         """
 
-        # Preprocessing and reshape of the data X and Y, depending on the model's type.
-        X, Y = self.model_input(self.X_train, self.Y_train, verbose=verbose)
+        # Reshape of the data X and Y, depending on the model's type.
+        X,Y = self.X_train, self.Y_train
 
 
         # no cross-validation
@@ -170,6 +165,7 @@ class NeuralModel:
         # early stopping
         es = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min',
                            patience=10, verbose=verbose)
+        
         callbacks = [es] if self.early_stopping else []
 
         # fit
@@ -230,6 +226,9 @@ class NeuralModel:
         loss = self.compute_loss(x, y_true, y_pred, verbose=verbose)
 
         return y_pred, obj, loss
+    
+    def test_model(self):
+        return self.evaluate_model(self.X_test,self.Y_test)
 
 
     ## This function could fill attribute during the instantiation of a metabolic model.

@@ -1,14 +1,17 @@
 import numpy as np
+from sklearn.base import BaseEstimator, TransformerMixin
 
-def MaxScaler(data, Max_Scaler = 1.0e12):
-    # Max standardize np array data
-    if Max_Scaler == 1.0e12: # Scale
-        Max_Scaler = np.max(data)
-        data = data/Max_Scaler
-    else: # Descale
-        data = data * Max_Scaler
-        Max_Scaler = 1.0e12      
-    return data, Max_Scaler
+
+class MaxScaler(BaseEstimator,TransformerMixin):
+    def __init__(self) -> None:
+        super().__init__()
+        self.max = None
+    def fit(self,X,y=None):
+        self.max = np.max(X)
+        return self
+    def transform(self,X,y=None):
+        return X/self.max
+
 
 def compute_V2M_M2V(S):
     n, m = S.shape[1], S.shape[0]
@@ -26,15 +29,18 @@ def compute_V2M_M2V(S):
     M2V = np.transpose(M2V)
     return V2M,M2V
 
+
 def compute_M2V(S):
     n, m = S.shape[1], S.shape[0]
     _, M2V = compute_V2M_M2V(S)
     return M2V
 
+
 def compute_V2M(S):
     n, m = S.shape[1], S.shape[0]
     V2M, _ = compute_V2M_M2V(S)
     return V2M
+
 
 def compute_P_in(S, medium, model_reactions):
     n, n_in = S.shape[1], len(medium)
@@ -45,6 +51,7 @@ def compute_P_in(S, medium, model_reactions):
         P_in[i][j] = 1
         i = i+1
     return P_in
+
 
 def compute_P_out(S, measure, model_reactions):
     n_out, n = len(measure), S.shape[1]

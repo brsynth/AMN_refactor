@@ -63,6 +63,7 @@ class AMNWtModel(AMNModel):
 
         self.model = model
 
+
     def output_AMNWt(self, V, Vin, verbose=False):
         """
         This method return a concatenation of different type of information.
@@ -94,7 +95,6 @@ class AMNWtModel(AMNModel):
     def printout_by_type(self):
         print('dataset file:', self.dataset_file)
         print('model type:', "AMNWt")
-        print('model scaler:', self.scaler)
         print('model medium bound:', self.medium_bound)
         print('timestep:', self.timestep)
         print('training set size', self.X.shape, self.Y.shape)
@@ -107,7 +107,6 @@ class AMNWtModel(AMNModel):
         if self.epochs > 0:
             print('training epochs:', self.epochs)
             print('training regression:', self.regression)
-            print('training learn rate:', self.train_rate)
             print('training droP_out:', self.droP_out)
             print('training batch size:', self.batch_size)
             print('training validation iter:', self.n_iter)
@@ -198,7 +197,8 @@ class RNNCell(keras.layers.Layer):
         V = tf.linalg.matmul(M,tf.transpose(W),b_is_sparse=True)
         V = V + V0 + self.br_V
         return V, [V]
-
+    
+    ## ????
     def get_config(self): # override tf.get_config to save RNN model
         # The code below does not work !! anyone to debug?
         config = super().get_config().copy()
