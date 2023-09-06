@@ -36,7 +36,8 @@ class ReturnStats:
               )
     
     def printout_train(self):
-        print("train = %.2f test = %.2f loss-train = %6f loss-test = %.6f" % \
+        # print("train = %.2f test = %.2f loss-train = %6f loss-test = %.6f" % \
+        print("train = %.6f test = %.6f loss-train = %6f loss-test = %.6f" % \
               (self.train_obj[0],
                self.test_obj[0],
                self.train_loss[0],

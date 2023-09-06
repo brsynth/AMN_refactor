@@ -150,6 +150,7 @@ class NeuralModel:
                 if new_stats.test_obj[0] > o_max :
                     o_max = new_stats.test_obj[0]
                     best_model = Net.model
+                
 
             self.model = best_model
             return Y_pred, stats, history
@@ -199,6 +200,9 @@ class NeuralModel:
 
         y_pred = self.model.predict(x)
 
+        # Compute stats on constraints. The loss depends on the model type.
+        loss = self.compute_loss(x, y_true, y_pred, verbose=verbose)
+
         # The model output could have more columns than the y_true. For
         # example the model could return some information to help us to
         # compute the loss. Also it can contains all the fluxes. 
@@ -206,24 +210,19 @@ class NeuralModel:
         # fluxes and the three additional loss we want to uses.
         y_p = y_pred[:,:y_true.shape[1]]
         
-        if self.regression:    
-            ## This is odd 
-            if len(y_true) == 1: # LOO case
-                print('LOO True, Pred, Q2 =', y_true, y_p, obj)
-                tss = y_true**2
-                rss = (y_p - y_true)**2
-                if np.sum(tss)== 0:
-                    obj = 1 - np.sum(rss)
-                else:
-                    obj = 1 - np.sum(rss) / np.sum(tss)
-            else:
-                obj = r2_score(y_true, y_p, multioutput='variance_weighted')
-        else:
-            obj_ = keras.metrics.binary_accuracy(y_true, y_p).numpy()
-            obj = np.count_nonzero(obj_)/len(obj_)
 
-        # Compute stats on constraints. The loss depends on the model type.
-        loss = self.compute_loss(x, y_true, y_pred, verbose=verbose)
+        ## This is odd 
+        if len(y_true) == 1: # LOO case
+            print('LOO True, Pred, Q2 =', y_true, y_p, obj)
+            tss = y_true**2
+            rss = (y_p - y_true)**2
+            if np.sum(tss)== 0:
+                obj = 1 - np.sum(rss)
+            else:
+                obj = 1 - np.sum(rss) / np.sum(tss)
+        else:
+            obj = r2_score(y_true, y_p, multioutput='variance_weighted')
+
 
         return y_pred, obj, loss
     
@@ -257,3 +256,4 @@ class NeuralModel:
         
     def printout_by_type(self):
         raise NotImplementedError
+    

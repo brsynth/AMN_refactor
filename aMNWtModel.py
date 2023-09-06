@@ -7,8 +7,6 @@ from keras.utils.generic_utils import CustomObjectScope
 from aMNModel import AMNModel
 from loss import SV_loss, V_in_loss, V_pos_loss
 
-
-
 class AMNWtModel(AMNModel):
     def __init__(self, **kwargs):
         AMNModel.__init__(self, **kwargs)
@@ -113,8 +111,47 @@ class AMNWtModel(AMNModel):
             print('training xfold:', self.xfold)
             print('training early stopping:', self.early_stopping)
     
-    
 
+    def build_model(self):
+        """
+        Build and return an AMN using an RNN cell
+        input : medium vector in parameter
+        # output: experimental steady state fluxes
+        """
+
+        seed = 10
+        np.random.seed(seed=seed)  
+        tf.random.set_seed(seed)
+
+        def Wt_layers(inputs, parameter, verbose=False):
+            # Build and return AMN layers using an RNN cell
+            with CustomObjectScope({'RNNCell': RNNCell}):
+                rnn = RNN(RNNCell(parameter))
+            V = rnn(inputs)
+            Vin = inputs[:,0,:]
+            return self.output_AMNWt(V, Vin,  verbose=verbose)
+
+
+        def mse(y_true, y_pred):
+            # Custom loss function
+            end = y_true.shape[1]
+            return keras.losses.mean_squared_error(y_true, y_pred[:,:end])
+        
+        # Model
+        keras_input_dim = self.X.shape[1]
+        inputs = keras.Input((None,keras_input_dim))
+
+
+        # outputs = Wt_layers(inputs,self)
+        V_in = self.get_V_in(inputs) 
+        outputs = tf.concat([Wt_layers(inputs,self),V_in],1)
+
+
+        # Compile
+        model = keras.models.Model(inputs, outputs)
+        model.compile(loss=mse,optimizer='adam',metrics=[mse])
+        return model
+    
 
 
 class RNNCell(keras.layers.Layer):

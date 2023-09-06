@@ -21,3 +21,4 @@ def V_pos_loss(V):
     loss = tf.keras.activations.relu(-V)
     loss_norm = tf.norm(loss, axis=1, keepdims=True)/V.shape[1] # rescaled
     return loss_norm
+
