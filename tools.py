@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
+import keras
 
 
 class MaxScaler(BaseEstimator,TransformerMixin):
@@ -67,3 +68,8 @@ def printout(filename, time, obj, loss):
     print('R2 = %.4f Constraint = %.4f' % \
               (obj, 
                loss))
+
+def my_mse(y_true, y_pred):
+            # Custom loss function
+            end = y_true.shape[1]
+            return keras.losses.mean_squared_error(y_true, y_pred[:,:end])

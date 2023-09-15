@@ -1,10 +1,11 @@
 import sys
-import copy
-import keras
+# import copy
+# import keras
 import numpy as np
-from sklearn.metrics import r2_score
-from sklearn.model_selection import train_test_split, KFold
-from returnStats import ReturnStats
+# from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split 
+# from sklearn.model_selection import KFold
+# from returnStats import ReturnStats
 from metabolicDataset import MetabolicDataset
 from tools import  compute_P_out
 
@@ -34,10 +35,9 @@ class NeuralModel:
                  timestep=0, 
                  regression=True, 
                  epochs=0, 
-                 droP_out=0.25, 
                  batch_size=5,
                  n_iter=0, 
-                 xfold=5, # Cross validation LOO does not work ##?
+                #  xfold=5, # Cross validation LOO does not work ##?
                  early_stopping=False,
                  verbose=False,
                 ):
@@ -62,10 +62,8 @@ class NeuralModel:
         # Training parameters
         self.epochs = epochs
         self.regression = regression
-        self.droP_out = droP_out
         self.batch_size = batch_size
         self.n_iter = n_iter
-        self.xfold = xfold
         self.early_stopping = early_stopping
 
         # metabolic data
@@ -73,7 +71,8 @@ class NeuralModel:
         self.S = dataset.S
         self.P_in = dataset.P_in 
         self.V2M = dataset.V2M 
-        self.M2V = dataset.M2V 
+        self.M2V = dataset.M2V
+        self.M2V_norm = self.norm_M2V(dataset.M2V)
 
 
         objective_ = objective if objective else dataset.measure
@@ -89,6 +88,15 @@ class NeuralModel:
             print('filtered measurements size: ',self.Y.shape[1])
 
 
+
+    def norm_M2V(self, M2V):
+        norm_M2V = M2V.copy()
+        for i,row in enumerate(M2V):
+            if np.count_nonzero(row) > 0:
+                norm_M2V[i] = row / np.count_nonzero(row)
+        return norm_M2V
+
+
     def train_test_split(self, test_size, random_state):
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X, 
                                                                                 self.Y, 
@@ -100,153 +108,11 @@ class NeuralModel:
         self.X_test = scaler.transform(self.X_test)
 
 
-    def train_evaluate(self, verbose=False):
-        """
-        This method takes care of all training steps, format the input depending on 
-        the model type, then it creates a model, and finally train it and return stats
-        and prediction. If the cross-validation is used the model attribute will be set
-        to the best model encountered, ie. best Q2/Acc on the test folds.
-        """
-
-        # Reshape of the data X and Y, depending on the model's type.
-        X,Y = self.X_train, self.Y_train
-
-
-        # no cross-validation
-        if self.xfold ==1 :
-
-            # Create the model and fill the model attribute with it.
-            self.set_model(verbose=verbose)
-            Y_pred, stats, history = self.train_model(X,Y,X,Y, verbose=verbose)
-            return Y_pred, stats, history
-
-        else :
-            best_model = self.model
-            k_fold = KFold(n_splits=self.xfold, shuffle=True)
-            o_max = -np.inf
-            stats = ReturnStats()
-
-            # The shape of the prediction depends on the model type, especially the number of columns.
-            Y_pred = np.zeros((len(Y), self.nb_columns_pred()))
-
-            # Cross-validation loop
-            for train, test in k_fold.split(X, Y):
-                if verbose: print('-------train', train, '\n-------test ', test)
-                
-                # Create a new network and train it 
-                Net = copy.deepcopy(self)
-                Net.set_model(verbose=verbose)
-                y_test_pred, new_stats, history = Net.train_model(X[train], 
-                                                                  Y[train], 
-                                                                  X[test], 
-                                                                  Y[test], verbose=verbose)
-                stats.update(new_stats)
-
-                # Fill the prediction set for this test fold
-                for i in range(len(test)):
-                    Y_pred[test[i]] = y_test_pred[i]
-
-                # Keep the model if it's the best we encounter
-                if new_stats.test_obj[0] > o_max :
-                    o_max = new_stats.test_obj[0]
-                    best_model = Net.model
-                
-
-            self.model = best_model
-            return Y_pred, stats, history
-
-
-
-    def train_model(self, X_train, Y_train, X_test, Y_test, verbose=False):
-        """
-        A standard function to create a model, fit, and test with early
-        stopping.
-        """
-
-        # early stopping
-        es = keras.callbacks.EarlyStopping(monitor='val_loss', mode='min',
-                           patience=10, verbose=verbose)
-        
-        callbacks = [es] if self.early_stopping else []
-
-        # fit
-        history = self.model.fit(X_train,
-                                 Y_train,
-                                 validation_data=(X_test, Y_test),
-                                 epochs=self.epochs,
-                                 batch_size=self.batch_size, 
-                                 callbacks=callbacks,
-                                 verbose=verbose)
-
-        # evaluate
-        _, o_train, l_train = self.evaluate_model(X_train, Y_train, verbose=verbose)
-        y_test_pred, o_test, l_test  = self.evaluate_model(X_test,Y_test, verbose=verbose)
-
-        stats = ReturnStats(train_obj = o_train, 
-                            test_obj = o_test, 
-                            train_loss = l_train, 
-                            test_loss = l_test)
-        stats.printout_train()
-    
-        return y_test_pred, stats, history
-    
-
-
-
-    def evaluate_model(self, x, y_true, verbose=False):
-        """
-        Return y_pred and stats on the model, R2 for regression and accuracy for classification.
-        """
-
-        y_pred = self.model.predict(x)
-
-        # Compute stats on constraints. The loss depends on the model type.
-        loss = self.compute_loss(x, y_true, y_pred, verbose=verbose)
-
-        # The model output could have more columns than the y_true. For
-        # example the model could return some information to help us to
-        # compute the loss. Also it can contains all the fluxes. 
-        # The columns corresponding to the y_true ones are the references
-        # fluxes and the three additional loss we want to uses.
-        y_p = y_pred[:,:y_true.shape[1]]
-        
-
-        ## This is odd 
-        if len(y_true) == 1: # LOO case
-            print('LOO True, Pred, Q2 =', y_true, y_p, obj)
-            tss = y_true**2
-            rss = (y_p - y_true)**2
-            if np.sum(tss)== 0:
-                obj = 1 - np.sum(rss)
-            else:
-                obj = 1 - np.sum(rss) / np.sum(tss)
-        else:
-            obj = r2_score(y_true, y_p, multioutput='variance_weighted')
-
-
-        return y_pred, obj, loss
-    
-    def test_model(self):
-        return self.evaluate_model(self.X_test,self.Y_test)
-
-
-    ## This function could fill attribute during the instantiation of a metabolic model.
-    def nb_columns_pred(self):
-        """This method depend on the model type."""
-        raise NotImplementedError
-
     def model_input(self, X, Y, verbose=False):
         """This method depend on the model type."""
         raise NotImplementedError
     
-    def set_model(self, verbose=False):
-        """This method depend on the model type."""
-        raise NotImplementedError
-    
-    def compute_loss(self, x, y_true, y_pred, verbose=False):
-        """This method depend on the model type."""
-        raise NotImplementedError
-
+  
     def printout(self,filename=''):
         if filename != '':
             sys.stdout = open(filename, 'a')

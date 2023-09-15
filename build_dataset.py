@@ -30,6 +30,7 @@ if __name__ == "__main__":
     seed = 10
     generation_parameters_file = './Dataset_generation_parameters.json'
     dataset = "iML1515_EXP_UB"
+    dataset = "biolog_iML1515_EXP_UB"
 
 
     np.random.seed(seed=10)  

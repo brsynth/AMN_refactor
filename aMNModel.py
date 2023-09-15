@@ -1,10 +1,10 @@
+import sklearn
 import numpy as np
 import tensorflow as tf
 from neuralModel import NeuralModel
 from loss import SV_loss, V_in_loss, V_pos_loss
 
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import r2_score
+
 
 
 
@@ -42,47 +42,17 @@ class AMNModel(NeuralModel):
         """
         raise NotImplementedError
     
-    
-    def compute_loss(self, x, y_true, y_pred, verbose=False):
-        """
-        This method compute a loss on constraint on y_pred. Remind that y_pred
-        is a concatenation of P_out.V_pred, S.V_pred, P_in.V_pred and ReLU(V_pred).
-        This is not necessarily the loss used in the model optimization.
-        """
-
-        # Get all predicted fluxes
-        V_final = y_pred[:,y_true.shape[1]:y_true.shape[1]+self.S.shape[1]] 
-        V_in = self.get_V_in(x)        
-        if verbose: ## Not functional
-            print_loss_evaluate(y_true, y_pred, V_in, self)               
-        loss = self.constraint_loss(V_final, V_in)
-        loss = np.mean(loss.numpy())
-        return loss
-    
-    def constraint_loss(self,V,V_in):
-
-        L = tf.concat([SV_loss(V, self.S), 
-                       V_in_loss(V, self.P_in, V_in, self.medium_bound),
-                       V_pos_loss(V)], axis=1)
-        L = tf.math.square(L)
-        L = tf.math.reduce_sum(L, axis=1)
-        L = tf.math.divide_no_nan(L, tf.constant(3.0, dtype=tf.float32))
-
-        return L
-    
 
     def mse(self,y_true, y_pred):
         # Custom loss function
         end = y_true.shape[1]
-        # return (y_true, y_pred[:,:end]) +100
-        return mean_squared_error(y_true, y_pred[:,:end])
+        return sklearn.metrics.mean_squared_error(y_true, y_pred[:,:end])
     
 
     def loss_constraint(self, y_true, y_pred):
 
             # Get all predicted fluxes
             V = y_pred[:,y_true.shape[1]:y_true.shape[1]+self.S.shape[1]]
-            # V_in = self.get_V_in(x)   
             V_in = y_pred[:,y_true.shape[1]+self.S.shape[1]:]   
 
             L = tf.concat([SV_loss(V, self.S), 
@@ -100,23 +70,6 @@ class AMNModel(NeuralModel):
     def R2(self,y_true, y_pred):
         # Custom loss function
         end = y_true.shape[1]
-        return r2_score(y_true, y_pred[:,:end], multioutput='variance_weighted')
-        # return r2_score(y_true, y_pred[:,:end])
- 
-    
-
-    
-
-
-    ## must be obtained from somewhere else self.Y.shape...
-    def get_V_in(self, x):
-        """This method depend on the model type."""
-        raise NotImplementedError
-
-
-def print_loss_evaluate(filemodel,truc,compile=False):
-    """This is a fake function to not get error above. Waiting for the load model
-    issue to be explore."""
-    pass
+        return sklearn.metrics.r2_score(y_true, y_pred[:,:end], multioutput='variance_weighted')
 
                             
