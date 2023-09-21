@@ -78,6 +78,10 @@ class AMNWtModel(AMNModel):
         # output: experimental steady state fluxes
         """
 
+        seed = 10
+        # np.random.seed(seed=seed)  
+        tf.random.set_seed(seed)
+
         def Wt_layers(inputs, verbose=False):
             # Build and return AMN layers using an RNN cell
             with CustomObjectScope({'RNNCell': RNNCell}):
@@ -164,7 +168,7 @@ class RNNCell(keras.layers.Layer):
         else:
             V0 = inputs # EB case
             
-        V0 = tf.linalg.matmul(V0, self.P_in)
+        V0 = tf.linalg.matmul(V0, self.P_in) ## here !
         M = tf.linalg.matmul(V,tf.transpose(self.V2M))
         W = tf.math.multiply(self.M2V,self.wr_V)
         V = tf.linalg.matmul(M,tf.transpose(W))
