@@ -11,20 +11,6 @@ from tools import my_mse
 class AMNWtModel(AMNModel):
     def __init__(self, **kwargs):
         AMNModel.__init__(self, **kwargs)
-
-
-    def model_input_by_type(self, X, Y):
-        """
-        We copy several time the dataset X to give to the RNN model a 
-        sequential dataset. The number of copy is given by the timestep attribute.
-        The shape of X is then transform from (a,b) to (a,timestep,b).
-        """
-        X_new = np.zeros((len(X), self.timestep, X.shape[1]))
-        for i in range(len(X)):
-            for j in range(self.timestep):
-                X_new[i][j] = X[i]
-
-        return X_new, Y
     
 
     def output_AMNWt(self, V, Vin, verbose=False):
@@ -82,6 +68,7 @@ class AMNWtModel(AMNModel):
         # np.random.seed(seed=seed)  
         tf.random.set_seed(seed)
 
+
         def Wt_layers(inputs, verbose=False):
             # Build and return AMN layers using an RNN cell
             with CustomObjectScope({'RNNCell': RNNCell}):
@@ -95,17 +82,25 @@ class AMNWtModel(AMNModel):
             Vin = inputs[:,0,:]
             return self.output_AMNWt(V, Vin,  verbose=verbose)
 
-        # Model
         keras_input_dim = self.X.shape[1]
-        inputs = keras.Input((None,keras_input_dim))
-        V_in = inputs[:,0,:] 
-        outputs = tf.concat([Wt_layers(inputs),V_in],1)
+        inputs = keras.Input((keras_input_dim))
+        V_in = inputs 
+
+        # Add dimension by concatenate several copy of input data to use data
+        # in the RNNCell
+        x = tf.expand_dims(V_in, axis =1)
+        l = list()
+        for i in range(4):
+            l.append(x)
+        x_n = tf.concat(l, axis=1)
+
+        outputs = tf.concat([Wt_layers(x_n),V_in],1)
 
         # Compile
         model = keras.models.Model(inputs, outputs)
         model.compile(loss=my_mse,optimizer='adam',metrics=[my_mse])
         return model
-    
+
 
 class RNNCell(keras.layers.Layer):
     def __init__(self, S, V2M, P_in,M2V, medium_bound, hidden_dim, **kwargs):

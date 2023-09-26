@@ -18,29 +18,14 @@ class AMNModel(NeuralModel):
         """
         This method add three zero columns to Y making the loss to minimize
         SV, P_in and V≥0 constraint easier to compute. 
-        Then, it call the model_type_input method to prepare X and Y as
-        input for the model, depending on its type.
         """
-        
         Y = np.concatenate((Y, np.zeros((len(Y),3))), axis=1)
-
-        # Preparing X and Y according to the model type.
-        X,Y = self.model_input_by_type(X,Y)
-        if verbose: print(self.model_type + ' shape', X.shape, Y.shape)        
-
         return X,Y
     
 
     def preprocessing_for_specific_model(self):
         self.X_train, self.Y_train = self.model_input(self.X_train, self.Y_train)
         self.X_test, self.Y_test = self.model_input(self.X_test, self.Y_test)
-    
-
-    def model_input_by_type(self, X, Y):
-        """
-        This method prepare X and Y depending on the type of model used.
-        """
-        raise NotImplementedError
     
 
     def mse(self,y_true, y_pred):
