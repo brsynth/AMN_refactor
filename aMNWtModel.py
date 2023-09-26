@@ -35,6 +35,50 @@ class AMNWtModel(AMNModel):
         return outputs
     
     
+
+    def build_model(self):
+        """
+        Build and return an AM
+        N using an RNN cell
+        input : medium vector in parameter
+        # output: experimental steady state fluxes
+        """
+
+        tf.random.set_seed(10)
+
+        with CustomObjectScope({'RNNCell': RNNCell}):
+            rnn = RNN(RNNCell(self.S, 
+                              self.V2M,
+                              self.P_in,
+                              self.M2V_norm,
+                              self.medium_bound,
+                              self.hidden_dim))
+
+
+        keras_input_dim = self.X.shape[1]
+        inputs = keras.Input((keras_input_dim))
+
+        # Add dimension by concatenate several copy of inputs data to use in
+        # the RNNCell
+        x = tf.expand_dims(inputs, axis =1)
+        x_n = tf.concat([x for _ in range(self.timestep)], axis=1)
+
+        V = rnn(x_n)
+        outputs = tf.concat([self.output_AMNWt(V, inputs),inputs],1)
+
+        # Compile
+        model = keras.models.Model(inputs, outputs)
+        model.compile(loss=my_mse,optimizer='adam',metrics=[my_mse])
+        return model
+
+
+
+
+
+
+
+
+
     
     def printout_by_type(self):
         print('dataset file:', self.dataset_file)
@@ -56,50 +100,6 @@ class AMNWtModel(AMNModel):
             print('training early stopping:', self.early_stopping)
     
 
-    def build_model(self):
-        """
-        Build and return an AM
-        N using an RNN cell
-        input : medium vector in parameter
-        # output: experimental steady state fluxes
-        """
-
-        seed = 10
-        # np.random.seed(seed=seed)  
-        tf.random.set_seed(seed)
-
-
-        def Wt_layers(inputs, verbose=False):
-            # Build and return AMN layers using an RNN cell
-            with CustomObjectScope({'RNNCell': RNNCell}):
-                rnn = RNN(RNNCell(self.S, 
-                                  self.V2M,
-                                  self.P_in,
-                                  self.M2V_norm,
-                                  self.medium_bound,
-                                  self.hidden_dim))
-            V = rnn(inputs)
-            Vin = inputs[:,0,:]
-            return self.output_AMNWt(V, Vin,  verbose=verbose)
-
-        keras_input_dim = self.X.shape[1]
-        inputs = keras.Input((keras_input_dim))
-        V_in = inputs 
-
-        # Add dimension by concatenate several copy of input data to use data
-        # in the RNNCell
-        x = tf.expand_dims(V_in, axis =1)
-        l = list()
-        for i in range(4):
-            l.append(x)
-        x_n = tf.concat(l, axis=1)
-
-        outputs = tf.concat([Wt_layers(x_n),V_in],1)
-
-        # Compile
-        model = keras.models.Model(inputs, outputs)
-        model.compile(loss=my_mse,optimizer='adam',metrics=[my_mse])
-        return model
 
 
 class RNNCell(keras.layers.Layer):
