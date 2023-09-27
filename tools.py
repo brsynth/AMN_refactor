@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 import keras
+import tensorflow as tf
+from loss import SV_loss, V_in_loss, V_pos_loss
 
 
 class MaxScaler(BaseEstimator,TransformerMixin):
@@ -68,8 +70,60 @@ def printout(filename, time, obj, loss):
     print('R2 = %.4f Constraint = %.4f' % \
               (obj, 
                loss))
+    
 
-def my_mse(y_true, y_pred):
-            # Custom loss function
-            end = y_true.shape[1]
-            return keras.losses.mean_squared_error(y_true, y_pred[:,:end])
+def my_mse_wrapper(S, P_out, P_in):
+    def my_mse(y_true, y_pred):
+
+        S_ = S
+        V = y_pred[:,:S_.shape[1]]
+        V_in = y_pred[:,S_.shape[1]:]
+
+           
+        Pout = tf.convert_to_tensor(np.float32(P_out))        
+ 
+        L = tf.concat([tf.linalg.matmul(V, tf.transpose(Pout)),
+                       SV_loss(V, S), 
+                       V_in_loss(V, P_in, V_in, "UB"),
+                       V_pos_loss(V)], 
+                       axis=1)
+        return keras.losses.mean_squared_error(y_true,L)
+    return my_mse     
+
+# def my_mse_wrapper(S, P_out, P_in):
+#     def my_mse(y_true, y_pred):
+
+#         S_ = S
+#         V = y_pred[:,:S_.shape[1]]
+#         V_in = y_pred[:,S_.shape[1]:]
+
+           
+#         Pout = tf.convert_to_tensor(np.float32(P_out))        
+ 
+#         L = tf.concat([tf.linalg.matmul(V, tf.transpose(Pout)),
+#                        SV_loss(V, S), 
+#                        V_in_loss(V, P_in, V_in, "UB"),
+#                        V_pos_loss(V)], 
+#                        axis=1)
+        
+#         return keras.losses.mean_squared_error(y_true,L)
+#     return my_mse    
+
+def custom_loss(S, P_out, P_in):
+    def my_mse(y_true, y_pred):
+
+        S_ = S
+        V = y_pred[:,:S_.shape[1]]
+        V_in = y_pred[:,S_.shape[1]:]
+
+           
+        Pout = tf.convert_to_tensor(np.float32(P_out))        
+ 
+        L = tf.concat([tf.linalg.matmul(V, tf.transpose(Pout)),
+                       SV_loss(V, S), 
+                       V_in_loss(V, P_in, V_in, "UB"),
+                       V_pos_loss(V)], 
+                       axis=1)
+        
+        return keras.losses.mean_squared_error(y_true,L)
+    return my_mse    

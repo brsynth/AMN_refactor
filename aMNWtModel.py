@@ -4,45 +4,15 @@ import tensorflow as tf
 from keras.layers import concatenate,RNN
 from keras.utils.generic_utils import CustomObjectScope
 from aMNModel import AMNModel
-from loss import SV_loss, V_in_loss, V_pos_loss
-from tools import my_mse
+from tools import custom_loss
 
 
 class AMNWtModel(AMNModel):
     def __init__(self, **kwargs):
         AMNModel.__init__(self, **kwargs)
-    
 
-    def output_AMNWt(self, V, Vin, verbose=False):
-        """
-        This method return a concatenation of different type of information.
-        First, it returns the predicted reference fluxes, P_outV. Then it
-        returns the loss computed for the SV, P_inV and V_pos. Then it returns
-        the prediction on all fluxes plus some loss.
-        All theses information are given to easily construct the loss on the
-        model.
-        """
-        P_out     = tf.convert_to_tensor(np.float32(self.P_out))
-        P_outV    = tf.linalg.matmul(V, tf.transpose(P_out))
-        SV        = SV_loss(V, self.S) # SV const
-        P_inV = V_in_loss(V, self.P_in, Vin, self.medium_bound) # P_in const
-        V_pos = V_pos_loss(V) # V ≥ 0 const
-        outputs = concatenate([P_outV, SV, P_inV, V_pos, V], axis=1)
-        if verbose:
-            print('AMN output shapes for P_outV, SV, P_inV, Vpos, V, outputs', \
-                  P_outV.shape, SV.shape, P_inV.shape, V_pos.shape,\
-                  V.shape, outputs.shape)
-        return outputs
-    
-    
 
     def build_model(self):
-        """
-        Build and return an AM
-        N using an RNN cell
-        input : medium vector in parameter
-        # output: experimental steady state fluxes
-        """
 
         tf.random.set_seed(10)
 
@@ -64,19 +34,14 @@ class AMNWtModel(AMNModel):
         x_n = tf.concat([x for _ in range(self.timestep)], axis=1)
 
         V = rnn(x_n)
-        outputs = tf.concat([self.output_AMNWt(V, inputs),inputs],1)
+        # Inputs are used to compute the loss, to do that we return inputs in
+        # the output
+        outputs = tf.concat([V, inputs],1)
 
         # Compile
         model = keras.models.Model(inputs, outputs)
-        model.compile(loss=my_mse,optimizer='adam',metrics=[my_mse])
+        model.compile(loss=custom_loss(self.S, self.P_out, self.P_in),optimizer='adam',metrics=[custom_loss(self.S, self.P_out, self.P_in)])
         return model
-
-
-
-
-
-
-
 
 
     
