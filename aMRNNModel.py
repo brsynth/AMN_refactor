@@ -7,7 +7,7 @@ from aMNModel import AMNModel
 from tools import custom_loss
 
 
-class AMNWtModel(AMNModel):
+class AMRNNModel(AMNModel):
     def __init__(self, **kwargs):
         AMNModel.__init__(self, **kwargs)
 
@@ -28,9 +28,25 @@ class AMNWtModel(AMNModel):
         keras_input_dim = self.X.shape[1]
         inputs = keras.Input((keras_input_dim))
 
+        # hidden layer + back to the same size layer 
+        # layer_1 = tf.keras.layers.Dense(self.hidden_dim, activation='relu')
+        # layer_2 = tf.keras.layers.Dense(keras_input_dim, activation='relu')
+        # z = layer_1(inputs)
+        # y = layer_2(z)
+
+        # one input layer
+        layer_1 = tf.keras.layers.Dense(keras_input_dim, activation='relu')
+        y = layer_1(inputs)
+
+
+        # no layer
+        # y = inputs
+
+
+
         # Add dimension by concatenate several copy of inputs data to use in
         # the RNNCell
-        x = tf.expand_dims(inputs, axis =1)
+        x = tf.expand_dims(y, axis =1)
         x_n = tf.concat([x for _ in range(self.timestep)], axis=1)
 
         V = rnn(x_n)
@@ -91,31 +107,10 @@ class RNNCell(keras.layers.Layer):
     
     def build(self, input_shape):
         # weighs to compute V for both input (i) and recurrent cell (r)
-        if self.medium_bound == 'UB': # no kernel_Vh and kernel_Vi for EB
-            if self.hidden_dim > 0: # plug an hidden layer upstream of Winput
-                self.wh_V = self.add_weight(shape=(self.input_size,self.hidden_dim), 
-                                            name='kernel_Vh', 
-                                            trainable=True)
-                self.wi_V = self.add_weight(shape=(self.hidden_dim, self.input_size), 
-                                            name='kernel_Vi',
-                                            trainable=True)
-                
-            else:
-                self.wi_V = self.add_weight(shape=(self.input_size, self.input_size), 
-                                            name='kernel_Vi',
-                                            trainable=True)
-            
-            self.bi_V  = self.add_weight(shape=(self.input_size,),
-                                        initializer='random_normal',
-                                        name='bias_Vi',
-                                        trainable=True)
-            
-        
-
+        # if self.medium_bound == 'UB': # no kernel_Vh and kernel_Vi for EB
         self.wr_V = self.add_weight(shape=(self.flux_dim, self.meta_dim),
                                            name='kernel_Vr',
                                            trainable=True)
-        
 
         self.br_V  = self.add_weight(shape=(self.flux_dim,),
                                             initializer='random_normal',
@@ -123,21 +118,17 @@ class RNNCell(keras.layers.Layer):
                                             trainable=True)
         self.built = True
 
-    
+
     def call(self, inputs, states):
         # At steady state we have :
         # M = V2M V and V = (M2V x W) M + V0
-        if self.medium_bound == 'UB':
-            if self.hidden_dim > 0:
-                VH = keras.backend.dot(inputs, self.wh_V)
-                V0 = keras.backend.dot(VH, self.wi_V) + self.bi_V
-            else:
-                V0 = keras.backend.dot(inputs, self.wi_V) + self.bi_V
-        else:
-            V0 = inputs # EB case
 
-        V0 = tf.linalg.matmul(V0, self.P_in) 
-    
+        V0 = tf.linalg.matmul(inputs, self.P_in) 
+        # a = V0<0
+        # a = tf.cast(a, tf.float32)
+        # print(tf.keras.backend.sum(a))
+
+
         V = states[0]
         M = tf.linalg.matmul(V,tf.transpose(self.V2M))
         W = tf.math.multiply(self.M2V,self.wr_V)
