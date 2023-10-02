@@ -17,32 +17,32 @@ class AMRNNModel(AMNModel):
         tf.random.set_seed(10)
 
         with CustomObjectScope({'RNNCell': RNNCell}):
-            rnn = RNN(RNNCell(self.S, 
-                              self.V2M,
-                              self.P_in,
-                              self.M2V_norm,
-                              self.medium_bound,
-                              self.hidden_dim))
+            rnn = RNN(RNNCell(S=self.S, 
+                              V2M=self.V2M, 
+                              P_uptake=self.P_uptake,
+                              M2V=self.M2V_norm, 
+                              ))
 
 
         keras_input_dim = self.X.shape[1]
+        
         inputs = keras.Input((keras_input_dim))
 
-        # hidden layer + back to the same size layer 
-        # layer_1 = tf.keras.layers.Dense(self.hidden_dim, activation='relu')
-        # layer_2 = tf.keras.layers.Dense(keras_input_dim, activation='relu')
-        # z = layer_1(inputs)
-        # y = layer_2(z)
+        # one hidden layer and to the uptake dim
+        uptake_dim = self.P_uptake.shape[0]
+        layer_1 = tf.keras.layers.Dense(self.hidden_dim, activation='relu')
+        layer_2 = tf.keras.layers.Dense(uptake_dim, activation='relu')
+        z = layer_1(inputs)
+        y = layer_2(z)
 
         # one input layer
-        layer_1 = tf.keras.layers.Dense(keras_input_dim, activation='relu')
-        y = layer_1(inputs)
-
+        # uptake_dim = self.P_uptake.shape[0]
+        # layer_1 = tf.keras.layers.Dense(uptake_dim, activation='relu')
+        # y = layer_1(inputs)
 
         # no layer
+        # not working when input have more the uptake fluxes (ex in ko dataset)
         # y = inputs
-
-
 
         # Add dimension by concatenate several copy of inputs data to use in
         # the RNNCell
@@ -87,7 +87,7 @@ class AMRNNModel(AMNModel):
 
 
 class RNNCell(keras.layers.Layer):
-    def __init__(self, S, V2M, P_in,M2V, medium_bound, hidden_dim, **kwargs):
+    def __init__(self, S, V2M, P_uptake, M2V, **kwargs):
 
         super(RNNCell, self).__init__(**kwargs)
 
@@ -95,19 +95,16 @@ class RNNCell(keras.layers.Layer):
         # Could probably do better code by defining type in config methods
         self.S  = np.float32(S)
         self.V2M = np.float32(V2M)
-        self.P_in =np.float32(P_in)
+        self.P_uptake =np.float32(P_uptake)
         self.M2V = np.float32(M2V)
-        self.medium_bound = medium_bound
-        self.hidden_dim = hidden_dim
 
         self.meta_dim = self.S.shape[0]
         self.flux_dim = self.S.shape[1]
         self.state_size = self.S.shape[1]
-        self.input_size = self.P_in.shape[0]
+        self.input_size = self.P_uptake.shape[0]
     
     def build(self, input_shape):
         # weighs to compute V for both input (i) and recurrent cell (r)
-        # if self.medium_bound == 'UB': # no kernel_Vh and kernel_Vi for EB
         self.wr_V = self.add_weight(shape=(self.flux_dim, self.meta_dim),
                                            name='kernel_Vr',
                                            trainable=True)
@@ -123,7 +120,7 @@ class RNNCell(keras.layers.Layer):
         # At steady state we have :
         # M = V2M V and V = (M2V x W) M + V0
 
-        V0 = tf.linalg.matmul(inputs, self.P_in) 
+        V0 = tf.linalg.matmul(inputs, self.P_uptake) 
         # a = V0<0
         # a = tf.cast(a, tf.float32)
         # print(tf.keras.backend.sum(a))
@@ -142,10 +139,8 @@ class RNNCell(keras.layers.Layer):
         config = {
             "S": self.S,
             "V2M" : self.V2M,
-            "P_in" : self.P_in,
+            "P_uptake" : self.P_uptake,
             "M2V" : self.M2V,
-            "medium_bound" : self.medium_bound,
-            "hidden_dim" : self.hidden_dim,
         }
 
         base_config.update(config)

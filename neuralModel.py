@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 # from sklearn.model_selection import KFold
 # from returnStats import ReturnStats
 from metabolicDataset import MetabolicDataset
-from tools import  compute_P_out
+from tools import  compute_P_out, compute_P_in
 
 
 
@@ -40,6 +40,7 @@ class NeuralModel:
                 #  xfold=5, # Cross validation LOO does not work ##?
                  early_stopping=False,
                  verbose=False,
+                 uptake_max_index =None
                 ):
         
         dataset = MetabolicDataset(dataset_file=dataset_file)
@@ -73,6 +74,10 @@ class NeuralModel:
         self.V2M = dataset.V2M 
         self.M2V = dataset.M2V
         self.M2V_norm = self.norm_M2V(dataset.M2V)
+        self.reactions = dataset.reactions
+        self.medium = dataset.medium
+        self.P_uptake = compute_P_in(self.S, self.medium[:uptake_max_index], list(self.reactions))
+
 
 
         objective_ = objective if objective else dataset.measure

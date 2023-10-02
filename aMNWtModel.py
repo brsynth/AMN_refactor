@@ -17,12 +17,14 @@ class AMNWtModel(AMNModel):
         tf.random.set_seed(10)
 
         with CustomObjectScope({'RNNCell': RNNCell}):
-            rnn = RNN(RNNCell(self.S, 
-                              self.V2M,
-                              self.P_in,
-                              self.M2V_norm,
-                              self.medium_bound,
-                              self.hidden_dim))
+            rnn = RNN(RNNCell(S=self.S, 
+                              V2M=self.V2M, 
+                              P_uptake=self.P_uptake,
+                              M2V=self.M2V_norm, 
+                              medium_bound=self.medium_bound, 
+                              hidden_dim=self.hidden_dim,
+                              input_size=self.X.shape[1]
+                              ))
 
 
         keras_input_dim = self.X.shape[1]
@@ -71,7 +73,7 @@ class AMNWtModel(AMNModel):
 
 
 class RNNCell(keras.layers.Layer):
-    def __init__(self, S, V2M, P_in,M2V, medium_bound, hidden_dim, **kwargs):
+    def __init__(self, S, V2M, P_uptake, M2V, medium_bound, hidden_dim, input_size, **kwargs):
 
         super(RNNCell, self).__init__(**kwargs)
 
@@ -79,7 +81,7 @@ class RNNCell(keras.layers.Layer):
         # Could probably do better code by defining type in config methods
         self.S  = np.float32(S)
         self.V2M = np.float32(V2M)
-        self.P_in =np.float32(P_in)
+        self.P_uptake =np.float32(P_uptake)
         self.M2V = np.float32(M2V)
         self.medium_bound = medium_bound
         self.hidden_dim = hidden_dim
@@ -87,29 +89,34 @@ class RNNCell(keras.layers.Layer):
         self.meta_dim = self.S.shape[0]
         self.flux_dim = self.S.shape[1]
         self.state_size = self.S.shape[1]
-        self.input_size = self.P_in.shape[0]
+        # self.input_size = self.P_in.shape[0]
+        self.input_size = input_size
+
     
     def build(self, input_shape):
+
+        uptake_size = self.P_uptake.shape[0]
         # weighs to compute V for both input (i) and recurrent cell (r)
         if self.medium_bound == 'UB': # no kernel_Vh and kernel_Vi for EB
             if self.hidden_dim > 0: # plug an hidden layer upstream of Winput
                 self.wh_V = self.add_weight(shape=(self.input_size,self.hidden_dim), 
                                             name='kernel_Vh', 
                                             trainable=True)
-                self.wi_V = self.add_weight(shape=(self.hidden_dim, self.input_size), 
+                self.wi_V = self.add_weight(shape=(self.hidden_dim, uptake_size), 
                                             name='kernel_Vi',
                                             trainable=True)
+
+
                 
             else:
                 self.wi_V = self.add_weight(shape=(self.input_size, self.input_size), 
                                             name='kernel_Vi',
                                             trainable=True)
-            
-            self.bi_V  = self.add_weight(shape=(self.input_size,),
+
+            self.bi_V  = self.add_weight(shape=(uptake_size,),
                                         initializer='random_normal',
                                         name='bias_Vi',
                                         trainable=True)
-            
         
 
         self.wr_V = self.add_weight(shape=(self.flux_dim, self.meta_dim),
@@ -136,7 +143,7 @@ class RNNCell(keras.layers.Layer):
         else:
             V0 = inputs # EB case
 
-        V0 = tf.linalg.matmul(V0, self.P_in) 
+        V0 = tf.linalg.matmul(V0, self.P_uptake) 
     
         V = states[0]
         M = tf.linalg.matmul(V,tf.transpose(self.V2M))
@@ -151,10 +158,11 @@ class RNNCell(keras.layers.Layer):
         config = {
             "S": self.S,
             "V2M" : self.V2M,
-            "P_in" : self.P_in,
+            "P_uptake" : self.P_uptake,
             "M2V" : self.M2V,
             "medium_bound" : self.medium_bound,
             "hidden_dim" : self.hidden_dim,
+            "input_size" : self.input_size,
         }
 
         base_config.update(config)

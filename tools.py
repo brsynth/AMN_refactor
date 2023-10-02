@@ -90,3 +90,24 @@ def custom_loss(S, P_out, P_in):
         
         return keras.losses.mean_squared_error(y_true,L)
     return my_mse    
+
+
+def custom_loss(S, P_out, P_in):
+    def my_mse(y_true, y_pred):
+
+        S_ = S
+        V = y_pred[:,:S_.shape[1]]
+        V_in = y_pred[:,S_.shape[1]:]
+
+           
+        Pout = tf.convert_to_tensor(np.float32(P_out))        
+ 
+        L = tf.concat([tf.linalg.matmul(V, tf.transpose(Pout)),
+                       SV_loss(V, S), 
+                       V_in_loss(V, P_in, V_in, "UB"),
+                       V_pos_loss(V)], 
+                       axis=1)
+        
+        return keras.losses.mean_squared_error(y_true,L)
+    return my_mse 
+
