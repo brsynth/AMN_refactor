@@ -115,6 +115,7 @@ def custom_loss(S, P_out, P_in):
         return keras.losses.mean_squared_error(y_true,L)
     return my_mse 
 
+
 def plot_regression(pred, true, pred_label, true_label, title, saving_file=None):
     plt.title(title)
     sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
@@ -128,6 +129,7 @@ def plot_regression(pred, true, pred_label, true_label, title, saving_file=None)
         plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
     plt.show()
     plt.close("all")
+
 
 def plot_classification(pred, true, saving_file=None):
 
@@ -146,5 +148,32 @@ def plot_classification(pred, true, saving_file=None):
     if saving_file:
         plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
 
+    plt.show()
+    plt.close("all")
+
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+def plot_regression(pred, true, pred_label, true_label, title, saving_file=None):
+    plt.title(title)
+    sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
+    sns.regplot(x=true, y=pred, fit_reg=0, marker='+', color='black', scatter_kws={'s':40, 'linewidths':0.7})
+    plt.xlabel(true_label)
+    plt.ylabel(pred_label)
+    
+    p1 = max(max(pred), max(true))
+    p2 = min(min(pred), min(true))
+    
+    # plt.xlim(p1, p2)
+    # plt.ylim(p1, p2)
+    plt.xlim(p2, p1)
+    plt.ylim(p2, p1)
+
+    plt.plot([p1, p2], [p1, p2], 'b-')
+
+    if saving_file:
+        plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
     plt.show()
     plt.close("all")
