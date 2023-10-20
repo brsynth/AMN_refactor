@@ -62,12 +62,6 @@ class AMNWtModel(AMNModel):
             print('hidden layer size:', self.hidden_dim)
             print('activation function:', self.activation)
 
-        if self.epochs > 0:
-            print('training epochs:', self.epochs)
-            print('training regression:', self.regression)
-            print('training batch size:', self.batch_size)
-            print('training validation iter:', self.n_iter)
-            print('training early stopping:', self.early_stopping)
     
 
 
@@ -89,7 +83,6 @@ class RNNCell(keras.layers.Layer):
         self.meta_dim = self.S.shape[0]
         self.flux_dim = self.S.shape[1]
         self.state_size = self.S.shape[1]
-        # self.input_size = self.P_in.shape[0]
         self.input_size = input_size
 
     

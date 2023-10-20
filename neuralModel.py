@@ -28,16 +28,12 @@ class NeuralModel:
     def __init__(self,
                  dataset_file,
                  objective=None,
-                #  scaler=False,
-                 n_hidden=0, 
+                 n_hidden=1, 
                  hidden_dim=0, # default no hidden layer
                  activation='relu', 
                  timestep=0, 
                  regression=True, 
-                 epochs=0, 
-                 batch_size=5,
                  n_iter=0, 
-                #  xfold=5, # Cross validation LOO does not work ##?
                  early_stopping=False,
                  verbose=False,
                  uptake_max_index =None
@@ -61,9 +57,7 @@ class NeuralModel:
         self.activation = activation
 
         # Training parameters
-        self.epochs = epochs
         self.regression = regression
-        self.batch_size = batch_size
         self.n_iter = n_iter
         self.early_stopping = early_stopping
 

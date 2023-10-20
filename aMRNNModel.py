@@ -76,13 +76,6 @@ class AMRNNModel(AMNModel):
             print('hidden layer size:', self.hidden_dim)
             print('activation function:', self.activation)
 
-        if self.epochs > 0:
-            print('training epochs:', self.epochs)
-            print('training regression:', self.regression)
-            print('training batch size:', self.batch_size)
-            print('training validation iter:', self.n_iter)
-            print('training early stopping:', self.early_stopping)
-    
 
 
 

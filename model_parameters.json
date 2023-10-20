@@ -1,0 +1,102 @@
+{
+    "e_coli_core_UB": {
+        "model_parameters": {
+            "dataset_file": "./Dataset/e_coli_core_UB.npz",
+            "objective": [
+                "BIOMASS_Ecoli_core_w_GAM"
+            ],
+            "timestep": 4,
+            "hidden_dim": 50,
+            "uptake_max_index": null
+        },
+        "preprocessing_parameters": {
+            "seed": 10,
+            "test_ratio": 0.1,
+            "scaler": "maxscaler"
+        },
+        "training_parameters": {
+            "epochs": 200,
+            "batch_size": 7
+        }
+    },
+    "iML1515_EXP_UB": {
+        "model_parameters": {
+            "dataset_file": "./Dataset/iML1515_EXP_UB.npz",
+            "objective": [
+                "BIOMASS_Ec_iML1515_core_75p37M"
+            ],
+            "timestep": 4,
+            "hidden_dim": 50,
+            "uptake_max_index": null
+        },
+        "preprocessing_parameters": {
+            "seed": 10,
+            "test_ratio": 0.1,
+            "scaler": "maxscaler"
+        },
+        "training_parameters": {
+            "epochs": 1000,
+            "batch_size": 7
+        }
+    },
+    "IJN1463_10_UB": {
+        "model_parameters": {
+            "dataset_file": "./Dataset/IJN1463_10_UB.npz",
+            "objective": [
+                "BIOMASS_KT2440_WT3"
+            ],
+            "timestep": 4,
+            "hidden_dim": 50,
+            "uptake_max_index": null
+        },
+        "preprocessing_parameters": {
+            "seed": 10,
+            "test_ratio": 0.1,
+            "scaler": "maxscaler"
+        },
+        "training_parameters": {
+            "epochs": 20,
+            "batch_size": 20
+        }
+    },
+    "IJN1463_EXP_UB_Anne": {
+        "model_parameters": {
+            "dataset_file": "./Dataset/IJN1463_EXP_UB_Anne.npz",
+            "objective": [
+                "BIOMASS_KT2440_WT3"
+            ],
+            "timestep": 4,
+            "hidden_dim": 50,
+            "uptake_max_index": null
+        },
+        "preprocessing_parameters": {
+            "seed": 10,
+            "test_ratio": 0.1,
+            "scaler": "maxscaler"
+        },
+        "training_parameters": {
+            "epochs": 200,
+            "batch_size": 30
+        }
+    },
+    "biolog_iML1515_EXP_UB": {
+        "model_parameters": {
+            "dataset_file": "./Dataset/biolog_iML1515_EXP_UB.npz",
+            "objective": [
+                "BIOMASS_Ec_iML1515_core_75p37M"
+            ],
+            "timestep": 4,
+            "hidden_dim": 50,
+            "uptake_max_index": 151
+        },
+        "preprocessing_parameters": {
+            "seed": 10,
+            "test_ratio": 0.1,
+            "scaler": "maxscaler"
+        },
+        "training_parameters": {
+            "epochs": 20,
+            "batch_size": 30
+        }
+    }
+}
