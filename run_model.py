@@ -9,7 +9,7 @@ from aMNWtModel import AMNWtModel
 from tools import MaxScaler
 
 
-def run_model(model_name,model_parameters_file,cross_validation=False,verbose=False):
+def run_model(model_name,model_parameters_file,cross_validation=False,save=False,verbose=0):
     
     with open(model_parameters_file, 'r') as f:
         data = json.load(f)
@@ -31,7 +31,7 @@ def run_model(model_name,model_parameters_file,cross_validation=False,verbose=Fa
         estimator= KerasRegressor(build_fn=AMN_model.build_model, 
                                   epochs=params["training_parameters"]["epochs"], 
                                   batch_size=params["training_parameters"]["batch_size"], 
-                                  verbose=0)
+                                  verbose=verbose)
 
         scoring = {"loss_constraint":make_scorer(AMN_model.loss_constraint),
                    "mse":make_scorer(AMN_model.mse),
@@ -52,10 +52,12 @@ def run_model(model_name,model_parameters_file,cross_validation=False,verbose=Fa
                                scoring=scoring, 
                                fit_params=fit_params,
                                return_train_score=True)
-        
+            
         df = pd.DataFrame(results)
         print(df.describe())
-        # df.to_csv("Result/" + model_name)
+        if save:
+            df.to_csv("Result/" + model_name)
+            df.describe().to_csv("Result/" + model_name + "_describe")
         
     else:
         # build and run the model
@@ -64,7 +66,7 @@ def run_model(model_name,model_parameters_file,cross_validation=False,verbose=Fa
                                   AMN_model.Y_train, 
                                   epochs=params["training_parameters"]["epochs"], 
                                   batch_size=params["training_parameters"]["batch_size"], 
-                                  verbose=0)
+                                  verbose=verbose)
 
         print("R2 :", AMN_model.R2(AMN_model.Y_train, AMNWt_model.predict(AMN_model.X_train)))
         print("Q2 :", AMN_model.R2(AMN_model.Y_test, AMNWt_model.predict(AMN_model.X_test)))
@@ -73,15 +75,17 @@ def run_model(model_name,model_parameters_file,cross_validation=False,verbose=Fa
 
 if __name__ == "__main__":
 
-    model_parameters_file = './Model_parameters.json'
-    model = "e_coli_core_UB"
+    model_parameters_file = './model_parameters.json'
+    # model = "e_coli_core_UB"
     model = "iML1515_EXP_UB"
-    model = "IJN1463_10_UB"
-    model = "IJN1463_EXP_UB_Anne"
-    model = "biolog_iML1515_EXP_UB"
+    # model = "IJN1463_10_UB"
+    # model = "IJN1463_EXP_UB_Anne"
+    # model = "biolog_iML1515_EXP_UB"
+    save =True
     cross_validation = True
+    verbose = 2#"auto"
 
-    run_model(model, model_parameters_file, cross_validation)
+    run_model(model, model_parameters_file, cross_validation,save, verbose)
 
     
 
