@@ -1,0 +1,5 @@
+setup.py
+amn.egg-info/PKG-INFO
+amn.egg-info/SOURCES.txt
+amn.egg-info/dependency_links.txt
+amn.egg-info/top_level.txt
