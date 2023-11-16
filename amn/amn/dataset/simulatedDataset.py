@@ -6,6 +6,7 @@ from amn.run_cobra import create_random_medium_cobra, run_cobra
 from amn.dataset import MetabolicDataset
 from amn.tools import compute_P_in, compute_V2M, compute_M2V
 
+
 class SimulatedDataset(MetabolicDataset):
 
     def __init__(self, experimental_file='', sample_size=100, cobra_objective=[], **kwargs):
@@ -77,6 +78,10 @@ class SimulatedDataset(MetabolicDataset):
         for i in range(sample_size):
             if verbose: print('sample:',i)
 
+            
+
+
+
             # Cobra runs on reduce model where X is already known ## EXP !!!
             if reduce:
                 inf = {r.id: 0 for r in self.model.reactions}
@@ -89,7 +94,21 @@ class SimulatedDataset(MetabolicDataset):
                                          method=self.method,verbose=verbose)
             
             X.append([inf[m] for m in self.medium])
-            out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
+
+            with open("test_cobra.txt", "a") as f:
+                f.write(str(i) + ": "+ str(X[i]) + '\n')
+
+            # out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
+
+
+
+            try:
+                out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
+            except:
+                print('Cobra cannot be run start again')
+                continue
+
+
             Y.append(list(out.values()))
 
         X = np.array(X)

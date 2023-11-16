@@ -3,7 +3,8 @@ import math
 import numpy as np
 from sklearn.utils import shuffle
 
-
+import optlang
+optlang.glpk_interface.Configuration()
 
 def run_cobra(model, objective, IN, method='FBA', verbose=False,
               objective_fraction=0.75, cobra_min_flux=1.0e-8):
@@ -27,6 +28,10 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
 
 
     # print(type(model))
+
+    # fix solver timeout
+    model.solver.configuration = optlang.glpk_interface.Configuration(timeout=5, presolve='auto', lp_method='simplex')
+
 
     medini = medium.copy()
 
@@ -157,11 +162,20 @@ def create_random_medium_cobra(model,
             influx[medium[m_index]] = new_value
             model.medium[medium[m_index]] = new_value
 
+        
+        # _, obj = run_cobra(model, objective, influx,
+                            #    method=method, verbose=False)
+        # 
+        try :
+            _, obj = run_cobra(model, objective, influx,
+                                   method=method, verbose=False)
+        except:
+            print('Cobra cannot be run start again')
+            continue
 
-        _, obj = run_cobra(model, objective, influx,
-                               method=method, verbose=False)
         
         if obj < cobra_min_objective:
+            print("obj < cobra_min")
             continue 
         break
 

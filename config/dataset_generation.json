@@ -111,6 +111,20 @@
             "dataset_dir": "/Dataset/",
             "dataset_name": "biolog_iML1515_medium_UB"
         }
+    },
+    "iML1515_UB_Anne": {
+        "method_generation": "simulated",
+        "MetabolicDataset_parameters": {
+            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
+            "experimental_file": "/Dataset_input/iML1515_EXP.csv",
+            "medium_file": "/Dataset_input/iML1515.csv",
+            "method": "pFBA",
+            "medium_bound": "UB",
+            "sample_size": 100
+        },
+        "saving_parameters": {
+            "dataset_dir": "/Dataset/",
+            "dataset_name": "iML1515_UB_Anne"
+        }
     }
-
 }

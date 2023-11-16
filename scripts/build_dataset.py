@@ -48,6 +48,7 @@ if __name__ == "__main__":
     dataset_name = "biolog_iML1515_medium_UB"
     dataset_name = "e_coli_core_UB_100"
     dataset_name = "IJN1463_10_UB"
+    dataset_name = "iML1515_UB_Anne"
 
     np.random.seed(seed=10)  
     generate_dataset(dataset_name,generation_file,data_dir,verbose=False)
