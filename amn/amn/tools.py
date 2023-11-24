@@ -3,10 +3,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 import keras
 import tensorflow as tf
 from amn.loss import SV_loss, V_in_loss, V_pos_loss
-import matplotlib.pyplot as plt
-from sklearn.metrics import roc_auc_score, roc_curve
-import seaborn as sns
-
 
 
 class MaxScaler(BaseEstimator,TransformerMixin):
@@ -74,26 +70,6 @@ def printout(filename, time, obj, loss):
     print('R2 = %.4f Constraint = %.4f' % \
               (obj, 
                loss))
-    
-
-def custom_loss(S, P_out, P_in):
-    def my_mse(y_true, y_pred):
-
-        S_ = S
-        V = y_pred[:,:S_.shape[1]]
-        V_in = y_pred[:,S_.shape[1]:]
-
-           
-        Pout = tf.convert_to_tensor(np.float32(P_out))        
- 
-        L = tf.concat([tf.linalg.matmul(V, tf.transpose(Pout)),
-                       SV_loss(V, S), 
-                       V_in_loss(V, P_in, V_in, "UB"),
-                       V_pos_loss(V)], 
-                       axis=1)
-        
-        return keras.losses.mean_squared_error(y_true,L)
-    return my_mse    
 
 
 def custom_loss(S, P_out, P_in):
@@ -116,64 +92,9 @@ def custom_loss(S, P_out, P_in):
     return my_mse 
 
 
-def plot_regression(pred, true, pred_label, true_label, title, saving_file=None):
-    plt.title(title)
-    sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
-    sns.regplot(x=true, y=pred, fit_reg=0, marker='+', color='black', scatter_kws={'s':40, 'linewidths':0.7})
-    plt.xlabel(true_label)
-    plt.ylabel(pred_label)
-    plt.xlim(min(true)-0.01, max(true)+0.05)
-    plt.ylim(min(pred)-0.02, max(pred)+0.05)
-
-    if saving_file:
-        plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
-    plt.show()
-    plt.close("all")
-
-
-def plot_classification(pred, true, saving_file=None):
-
-    roc = roc_curve(true, pred)
-    auc = roc_auc_score(true, pred)
-    plt.title('AUC = %.2f'% auc)
-
-    sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.ylim((0,1))
-    plt.xlim((0,1))
-    plt.xticks([0.2,0.4,0.6,0.8,1.0])
-    sns.lineplot(x=roc[0], y=roc[1])
-
-    if saving_file:
-        plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
-
-    plt.show()
-    plt.close("all")
-
-
-
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-def plot_regression(pred, true, pred_label, true_label, title, saving_file=None):
-    plt.title(title)
-    sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
-    sns.regplot(x=true, y=pred, fit_reg=0, marker='+', color='black', scatter_kws={'s':40, 'linewidths':0.7})
-    plt.xlabel(true_label)
-    plt.ylabel(pred_label)
-    
-    p1 = max(max(pred), max(true))
-    p2 = min(min(pred), min(true))
-    
-    # plt.xlim(p1, p2)
-    # plt.ylim(p1, p2)
-    plt.xlim(p2, p1)
-    plt.ylim(p2, p1)
-
-    plt.plot([p1, p2], [p1, p2], 'b-')
-
-    if saving_file:
-        plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
-    plt.show()
-    plt.close("all")
+def threshold_percentage_max(X,percentage):
+    """This function return a binary vector from X by threshold a certain
+    percentage of the maximum value of X."""
+    max = X.max()
+    X_threshold = X >= max*percentage
+    return X_threshold.astype(int)
