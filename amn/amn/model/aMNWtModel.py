@@ -1,4 +1,5 @@
 import keras
+from tensorflow import keras
 import numpy as np
 import tensorflow as tf
 from keras.layers import concatenate,RNN
@@ -42,8 +43,9 @@ class AMNWtModel(AMNModel):
 
         # Compile
         model = keras.models.Model(inputs, outputs)
+        opt = keras.optimizers.Adam(learning_rate=0.001)
         model.compile(loss=custom_loss(self.S, self.P_out, self.P_in),
-                      optimizer='adam',
+                      optimizer=opt,
                       metrics=[custom_loss(self.S, self.P_out, self.P_in)],
                       run_eagerly=False)
         return model

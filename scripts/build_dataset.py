@@ -6,8 +6,6 @@ from amn.dataset import ExperimentalDataset
 from amn.dataset import MetabolicDataset
 
 
-
-
 def generate_dataset(dataset_name,generation_parameters_file,data_dir,verbose=False):
     
     with open(generation_parameters_file, 'r') as f:
@@ -48,7 +46,9 @@ if __name__ == "__main__":
     dataset_name = "biolog_iML1515_medium_UB"
     dataset_name = "e_coli_core_UB_100"
     dataset_name = "IJN1463_10_UB"
-    dataset_name = "iML1515_UB_Anne"
+    dataset_name = "iML1515_UB"
+    dataset_name = "IJN1463_EXP_UB"
+    dataset_name = "iML1515_EXP_2_UB"
 
     np.random.seed(seed=10)  
     generate_dataset(dataset_name,generation_file,data_dir,verbose=False)

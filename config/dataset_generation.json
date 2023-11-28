@@ -73,7 +73,7 @@
             "dataset_name": "iML1515_EXP_UB"
         }
     },
-    "IJN1463_EXP_UB_Anne": {
+    "IJN1463_EXP_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
             "cobra_file": "/Dataset_input/IJN1463_duplicated.xml",
@@ -83,7 +83,7 @@
         },
         "saving_parameters": {
             "dataset_dir": "/Dataset/",
-            "dataset_name": "IJN1463_EXP_UB_Anne"
+            "dataset_name": "IJN1463_EXP_UB"
         }
     },
     "biolog_iML1515_EXP_UB": {
@@ -112,7 +112,7 @@
             "dataset_name": "biolog_iML1515_medium_UB"
         }
     },
-    "iML1515_UB_Anne": {
+    "iML1515_UB": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
             "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
@@ -124,7 +124,20 @@
         },
         "saving_parameters": {
             "dataset_dir": "/Dataset/",
-            "dataset_name": "iML1515_UB_Anne"
+            "dataset_name": "iML1515_UB"
+        }
+    },
+    "iML1515_EXP_2_UB": {
+        "method_generation": "experimental",
+        "MetabolicDataset_parameters": {
+            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
+            "medium_file": "/Dataset_input/iML1515_EXP.csv",
+            "method": "EXP",
+            "medium_bound": "UB"
+        },
+        "saving_parameters": {
+            "dataset_dir": "/Dataset/",
+            "dataset_name": "iML1515_EXP_2_UB"
         }
     }
 }
