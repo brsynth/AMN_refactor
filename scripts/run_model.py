@@ -82,13 +82,13 @@ if __name__ == "__main__":
     # model = "e_coli_core_UB"
     model = "e_coli_core_UB_100"
     model = "e_coli_core_EB"
-    model = "iML1515_UB"
     model = "IJN1463_EXP_UB"
     model = "biolog_iML1515_EXP_UB"
     model = "IJN1463_10_UB"
     # model = "e_coli_core_UB"
     model = "biolog_iML1515_medium_UB"
     model = "iML1515_EXP_2_UB"
+    model = "iML1515_UB"
     # model = "iML1515_EXP_UB"
 
 
