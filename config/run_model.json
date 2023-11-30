@@ -175,7 +175,7 @@
             "scaler": "maxscaler"
         },
         "training_parameters": {
-            "epochs": 30,
+            "epochs": 10,
             "batch_size": 30
         }
     },
