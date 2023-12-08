@@ -1,4 +1,4 @@
-from amn.tools import zip_models
+from amn.archive import zip_models
 
 if __name__ == "__main__":
 
