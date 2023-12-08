@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_auc_score, roc_curve
 
 
-def plot_classification(pred, true, saving_file=None):
+def plot_classification(pred, true, saving_file=None,show=False):
     roc = roc_curve(true, pred)
     auc = roc_auc_score(true, pred)
     plt.title('AUC = %.2f'% auc)
@@ -18,12 +18,12 @@ def plot_classification(pred, true, saving_file=None):
 
     if saving_file:
         plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
-
-    plt.show()
+    if show:
+        plt.show()
     plt.close("all")
 
 
-def plot_regression(pred, true, pred_label, true_label, title, saving_file=None):
+def plot_regression(pred, true, pred_label, true_label, title, saving_file=None,show=False):
     plt.title(title)
     sns.set(font='arial', palette="colorblind", style="whitegrid", font_scale=2.5, rc={'figure.figsize':(11,11)})
     sns.regplot(x=true, y=pred, fit_reg=0, marker='+', color='black', scatter_kws={'s':40, 'linewidths':0.7})
@@ -40,7 +40,8 @@ def plot_regression(pred, true, pred_label, true_label, title, saving_file=None)
 
     if saving_file:
         plt.savefig(saving_file, format="png", dpi=600, bbox_inches='tight')
-    plt.show()
+    if show:
+        plt.show()
     plt.close("all")
 
 

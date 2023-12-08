@@ -1,0 +1,1 @@
+{"model_parameters": {"dataset_file": "/Dataset/e_coli_core_EB.npz", "objective": ["BIOMASS_Ecoli_core_w_GAM"], "timestep": 4, "hidden_dim": 50, "uptake_max_index": null}, "preprocessing_parameters": {"seed": 10, "test_ratio": 0.1, "scaler": "maxscaler"}, "training_parameters": {"epochs": 500, "batch_size": 7}, "visualization_parameters": {"classification": false}}

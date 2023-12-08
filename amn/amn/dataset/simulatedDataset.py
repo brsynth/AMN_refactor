@@ -95,13 +95,13 @@ class SimulatedDataset(MetabolicDataset):
             
             X.append([inf[m] for m in self.medium])
 
-            with open("test_cobra.txt", "a") as f:
-                f.write(str(i) + ": "+ str(X[i]) + '\n')
+            # with open("test_cobra.txt", "a") as f:
+                # f.write(str(i) + ": "+ str(X[i]) + '\n')
 
             # out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
 
 
-
+            ## is this happening ?
             try:
                 out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
             except:
