@@ -29,17 +29,22 @@ class AMNWtModel(AMNModel):
 
 
         keras_input_dim = self.X.shape[1]
-        inputs = keras.Input((keras_input_dim))
+        # inputs = keras.Input((keras_input_dim))
+        inputs = keras.Input((keras_input_dim,))
 
         # Add dimension by concatenate several copy of inputs data to use in
         # the RNNCell
-        x = tf.expand_dims(inputs, axis =1)
-        x_n = tf.concat([x for _ in range(self.timestep)], axis=1)
+        x_n =tf.keras.layers.RepeatVector(self.timestep)(inputs)
+        # x = tf.expand_dims(inputs, axis =1)
+        # x_n = tf.concat([x for _ in range(self.timestep)], axis=1)
 
         V = rnn(x_n)
+
         # Inputs are used to compute the loss, to do that we return inputs in
         # the output
-        outputs = tf.concat([V, inputs],1)
+        outputs = tf.keras.layers.Concatenate(1)([V, inputs])
+
+        # outputs = tf.concat([V, inputs],1)
 
         # Compile
         model = keras.models.Model(inputs, outputs)
