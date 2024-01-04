@@ -9,6 +9,7 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import KFold, cross_validate
 from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
 from amn.model import AMNWtModel
+from amn.model import LinearModel
 from amn.tools import MaxScaler, threshold_percentage_max
 from amn.visualize import plot_regression, plot_classification
 
@@ -40,7 +41,8 @@ def run_model(model_name,
 
 
     # Dataset and architecture information
-    AMN_model = AMNWtModel(**params["model_parameters"])
+    # AMN_model = AMNWtModel(**params["model_parameters"])
+    AMN_model = LinearModel(**params["model_parameters"])
 
     random_state = params["preprocessing_parameters"]["seed"] + add_random_state
 
@@ -148,9 +150,15 @@ if __name__ == "__main__":
     data_dir = "../data"
     save_folder = "../results/"
     verbose = 2#"auto"
-    # cross_validation = True
-    cross_validation = False
+    cross_validation = True
+    # cross_validation = False
     show_figures = False
+    add_random_state = 0
+
+    model_parameters_file = "../config/run_model_linear.json"
+    save_folder = "../results_linear/"
+    run_all = False
+    # run_all = True
 
     all = ["e_coli_core_UB_100",
            "e_coli_core_UB",
@@ -168,12 +176,38 @@ if __name__ == "__main__":
     # model = "e_coli_core_EB"
     # model = "IJN1463_10_UB"
     # model = "IJN1463_EXP_UB"
-    # model = "iML1515_EXP_UB"
+    model = "iML1515_EXP_UB"
     # model = "iML1515_UB"
     # model = "biolog_iML1515_EXP_UB"
     # model = "biolog_iML1515_medium_UB"
     # model = "iML1515_EXP_2_UB"
 
+
+    if run_all:
+        for model in all:
+            run_model(model,
+                      model_parameters_file,
+                      data_dir,
+                      cross_validation,
+                      save_folder,
+                      verbose,
+                      add_random_state,
+                      show_figures)
+    else:
+        run_model(model,
+                  model_parameters_file,
+                  data_dir,
+                  cross_validation,
+                  save_folder,
+                  verbose,
+                  add_random_state,
+                  show_figures)
+
+    
+
+    
+    
+    # Run the model several times, changing the seed for train/test split. (Explores influence of this seed on score for small datasets.)
     # nb_run = 1
     # for i in range(nb_run):
         # run_model(model,
@@ -183,16 +217,6 @@ if __name__ == "__main__":
         # verbose,
         # i,
         # show_figures)
-
-    for model in all:
-        run_model(model,
-                  model_parameters_file,
-                  data_dir,
-                  cross_validation,save_folder,
-                  verbose,
-                  0,
-                  show_figures)
-    
 
 
 
