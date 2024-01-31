@@ -8,13 +8,13 @@ from pathlib import Path
 from sklearn.metrics import make_scorer
 from sklearn.model_selection import KFold, cross_validate
 from tensorflow.keras.wrappers.scikit_learn import KerasRegressor
-from amn.model import AMNWtModel
-from amn.model import LinearModel
+from amn.model import AMNWtModel, LinearModel, AMRNNModel
 from amn.tools import MaxScaler, threshold_percentage_max
 from amn.visualize import plot_regression, plot_classification
 
 
-def run_model(model_name,
+def run_model(model_class,
+              dataset_name,
               model_parameters_file,
               data_dir,
               cross_validation=False,
@@ -23,14 +23,14 @@ def run_model(model_name,
               add_random_state=None,
               show_figure=False):
     
-    print(f'Run {add_random_state +1} AMNWt on {model_name} ')
+    print(f'Run {add_random_state +1} AMNWt on {dataset_name} ')
     
     with open(model_parameters_file, 'r') as f:
         data = json.load(f)
-    params = data[model_name]
+    params = data[dataset_name]
 
     if save_folder:
-        result_folder = save_folder + model_name +"/"
+        result_folder = save_folder + dataset_name +"/"
         Path(result_folder).mkdir(parents=True, exist_ok=True)
 
         with open(result_folder + "params.json", 'w') as f:
@@ -41,8 +41,7 @@ def run_model(model_name,
 
 
     # Dataset and architecture information
-    # AMN_model = AMNWtModel(**params["model_parameters"])
-    AMN_model = LinearModel(**params["model_parameters"])
+    AMN_model = model_class(**params["model_parameters"])
 
     random_state = params["preprocessing_parameters"]["seed"] + add_random_state
 
@@ -115,9 +114,9 @@ def run_model(model_name,
 
         if save_folder:
             if add_random_state:
-                plot_file = result_folder + model_name + "_" + str(add_random_state) +".png"
+                plot_file = result_folder + dataset_name + "_" + str(add_random_state) +".png"
             else:
-                plot_file = result_folder + model_name +".png"
+                plot_file = result_folder + dataset_name +".png"
         else:
             plot_file=""
                 
@@ -146,6 +145,7 @@ def run_model(model_name,
 
 if __name__ == "__main__":
 
+    model_class = AMNWtModel
     model_parameters_file = "../config/run_model.json"
     data_dir = "../data"
     save_folder = "../results/"
@@ -154,11 +154,22 @@ if __name__ == "__main__":
     # cross_validation = False
     show_figures = False
     add_random_state = 0
+    sum_up =True
+    
 
+    model_class = LinearModel
     model_parameters_file = "../config/run_model_linear.json"
     save_folder = "../results_linear/"
     run_all = False
     # run_all = True
+
+    # model_class = AMRNNModel
+    # model_parameters_file = "../config/run_model.json"
+    # save_folder = "../results_RNN/"
+    # run_all = True
+
+    save_folder = "../results/"
+
 
     all = ["e_coli_core_UB_100",
            "e_coli_core_UB",
@@ -171,37 +182,44 @@ if __name__ == "__main__":
            "biolog_iML1515_medium_UB",
            "iML1515_EXP_2_UB"]
 
-    model = "e_coli_core_UB_100"
+    dataset = "e_coli_core_UB_100"
     # model = "e_coli_core_UB"
     # model = "e_coli_core_EB"
     # model = "IJN1463_10_UB"
     # model = "IJN1463_EXP_UB"
-    model = "iML1515_EXP_UB"
+    dataset = "iML1515_EXP_UB"
     # model = "iML1515_UB"
     # model = "biolog_iML1515_EXP_UB"
     # model = "biolog_iML1515_medium_UB"
     # model = "iML1515_EXP_2_UB"
 
 
-    if run_all:
-        for model in all:
-            run_model(model,
-                      model_parameters_file,
-                      data_dir,
-                      cross_validation,
-                      save_folder,
-                      verbose,
-                      add_random_state,
-                      show_figures)
-    else:
-        run_model(model,
-                  model_parameters_file,
-                  data_dir,
-                  cross_validation,
-                  save_folder,
-                  verbose,
-                  add_random_state,
-                  show_figures)
+    # if run_all:
+        # for dataset in all:
+            # run_model(model_class,
+                    #   dataset,
+                    #   model_parameters_file,
+                    #   data_dir,
+                    #   cross_validation,
+                    #   save_folder,
+                    #   verbose,
+                    #   add_random_state,
+                    #   show_figures)
+    # else:
+        # run_model(model_class,
+                #   dataset,
+                #   model_parameters_file,
+                #   data_dir,
+                #   cross_validation,
+                #   save_folder,
+                #   verbose,
+                #   add_random_state,
+                #   show_figures)
+    
+    if sum_up:
+        from sum_up_result import sum_up_result
+        sum_up_result(save_folder,True)
+
 
     
 

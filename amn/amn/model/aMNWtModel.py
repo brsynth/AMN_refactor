@@ -91,6 +91,7 @@ class RNNCell(keras.layers.Layer):
         self.flux_dim = self.S.shape[1]
         self.state_size = self.S.shape[1]
         self.input_size = input_size
+        self.count = 0
 
     
     def build(self, input_shape):
@@ -143,7 +144,8 @@ class RNNCell(keras.layers.Layer):
         else:
             V0 = inputs # EB case
 
-        V0 = tf.linalg.matmul(V0, self.P_uptake) 
+        V0 = tf.linalg.matmul(V0, self.P_uptake)
+        # V0 = tf.linalg.matmul(inputs, self.P_uptake)
     
         V = states[0]
         M = tf.linalg.matmul(V,tf.transpose(self.V2M))
@@ -151,7 +153,7 @@ class RNNCell(keras.layers.Layer):
         V = tf.linalg.matmul(M,tf.transpose(W))
         V = V + V0 + self.br_V
         return V, [V]
-    
+ 
 
     def get_config(self):
         base_config = super().get_config()

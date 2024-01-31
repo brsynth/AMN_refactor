@@ -1,7 +1,7 @@
 import os
 import pathlib
 import pandas as pd
-def sum_up_result(result_folder, save_summary):
+def sum_up_result(result_folder, save_summary=False):
 
     D = dict()
     datasets = list()
@@ -43,7 +43,8 @@ def sum_up_result(result_folder, save_summary):
 
 if __name__ == "__main__":
     result_folder = "../results_linear/"
-    result_folder = "../results/"
+    # result_folder = "../results/"
+    # result_folder = "../results_RNN/"
 
     save_summary = True
     sum_up_result(result_folder, save_summary)
