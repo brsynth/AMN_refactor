@@ -26,9 +26,6 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
     # set the medium and objective
     medium = model.medium
 
-
-    # print(type(model))
-
     # fix solver timeout
     model.solver.configuration = optlang.glpk_interface.Configuration(timeout=5, presolve='auto', lp_method='simplex')
 
@@ -52,7 +49,7 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
         print('primal objectif =', objective, method, solution_val)
 
     # run FBA for second objective
-    # primal objectif is set to a fraction of its value
+    # primal objective is set to a fraction of its value
     if len(objective) > 1:
         obj = model.reactions.get_by_id(objective[0])
         obj_lb, obj_ub = obj.lower_bound, obj.upper_bound
@@ -69,7 +66,7 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
         obj.lower_bound, obj.upper_bound = obj_lb, obj_ub
         model.objective = objective[0]
 
-    # get the fluxes for all model reactio
+    # get the fluxes for all model reaction
     FLUX = IN.copy()
     for x in model.reactions:
         if x.id in FLUX.keys():
@@ -89,14 +86,13 @@ def run_cobra(model, objective, IN, method='FBA', verbose=False,
 def create_random_medium_cobra(model,
                                objective,
                                medium, 
-                               medium_bound, #useless
                                medium_variation, 
                                medium_level, 
                                medium_max_value, 
                                medium_ratio,
                                method='FBA', 
-                               verbose=False, #useless
-                               cobra_min_objective=1.0e-3,max_iteration=5):
+                               cobra_min_objective=1.0e-3,
+                               max_iteration=5):
     """
     Generate a random input for cobra. We could run cobra several times to
     make sure that the objective is not too low.
@@ -163,9 +159,6 @@ def create_random_medium_cobra(model,
             model.medium[medium[m_index]] = new_value
 
         
-        # _, obj = run_cobra(model, objective, influx,
-                            #    method=method, verbose=False)
-        # 
         try :
             _, obj = run_cobra(model, objective, influx,
                                    method=method, verbose=False)

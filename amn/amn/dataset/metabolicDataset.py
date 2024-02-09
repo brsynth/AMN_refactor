@@ -19,7 +19,7 @@ class MetabolicDataset:
                  dataset_file='',
                  cobra_file='',
                  medium_file='', 
-                 medium_bound='EB', 
+                 medium_bound='UB', 
                  method='FBA',
                  measure=None, 
                  verbose=False):
@@ -38,17 +38,8 @@ class MetabolicDataset:
         self.method = method
         self.verbose=verbose
         
-        if verbose:
-            print('medium:',self.medium)
-            print('level_med:',self.level_med)
-            print('value_medium:',self.value_medium)
-            print('ratio_medium:',self.ratio_medium)
-            print('measurements size: ',len(self.measure))
-
 
     def save(self, dataset_dir, dataset_name,verbose=False):
-
-        # self.Y_all = self.Y.copy() ## Just to make the code working, What is the purpose of Y_all anyway ???
 
         # save cobra model and other parameters
         filename = os.path.join(dataset_dir,dataset_name)
@@ -65,30 +56,6 @@ class MetabolicDataset:
         for key in loaded:
             setattr(self, key, loaded[key])
 
-
-    def check_file_name_npz(self, file_name):
-        if not os.path.isfile(file_name+'.npz'):
-            print(file_name+'.npz')
-            sys.exit('file not found')
-
-
-    def valid_cobra_file(self, cobra_name):
-        if cobra_name == '':
-            sys.exit('Give a training file or a appropriate cobra_name.')
-        if not os.path.isfile(cobra_name+'.xml'):
-            print(cobra_name)
-            sys.exit('xml cobra file not found')
-        return cobra_name
-
-
-    def valid_medium_file(self, medium_file):
-        if medium_file == '':
-            sys.exit('Give a training file or a appropriate medium_name.')
-        if not os.path.isfile(medium_file+'.csv'):
-            print(medium_file)
-            sys.exit('medium file not found')
-        return medium_file
-    
 
     def printout(self):
         for k,v in self.__dict__.items():

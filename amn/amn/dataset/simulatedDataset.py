@@ -1,10 +1,9 @@
 import cobra
 import numpy as np
 import pandas as pd
-import cobra.manipulation as manip
-from amn.run_cobra import create_random_medium_cobra, run_cobra
 from amn.dataset import MetabolicDataset
-from amn.tools import compute_P_in, compute_V2M, compute_M2V
+from amn.run_cobra import create_random_medium_cobra, run_cobra
+from amn.tools import compute_P_in
 
 
 class SimulatedDataset(MetabolicDataset):
@@ -21,96 +20,63 @@ class SimulatedDataset(MetabolicDataset):
         self.method_generation ="SIMULATED"
 
 
+        if self.verbose:
+            print('medium:',self.medium)
+            print('level_med:',self.level_med)
+            print('value_medium:',self.value_medium)
+            print('ratio_medium:',self.ratio_medium)
+
         # Default objective for cobra is the biomass
         self.cobra_objective = cobra_objective if cobra_objective else\
                          [self.model.objective.to_json()["expression"]['args'][0]['args'][1]["name"]]
         
         if experimental_file:
             df_medium = pd.read_csv(experimental_file, header=0)
-            medium_column = [c for c in df_medium.columns if "GR" not in c] ## Not satisfying ! Before it was the last columns with a given number of medium columns...
+            medium_column = [c for c in df_medium.columns if "GR" not in c] 
             X = df_medium[medium_column].values
 
-            # Create varmed the list of variable medium based on experimental file
-            medium_variation = {}
-            for i in range(X.shape[0]):
-                medium_variation[i] = []
+            for i in range(X.shape[0]): 
+                medium_variation = []
                 for j in range(X.shape[1]):
                     if self.level_med[j] > 1 and X[i,j] > 0:
-                        medium_variation[i].append(self.medium[j])
-            medium_variation = list(medium_variation.values())
+                        medium_variation.append(self.medium[j])
 
-            # Get a Cobra training set constrained by varmed
-            for i in range(X.shape[0]): 
                 self.get_simulated_data(sample_size=sample_size,
-                                        varmed=medium_variation[i], 
+                                        varmed=medium_variation, 
                                         add_to_existing_data = i, 
-                                        verbose=True) 
+                                        verbose=self.verbose) 
         else : 
-            self.get_simulated_data(sample_size=sample_size,verbose=self.verbose)
+            self.get_simulated_data(sample_size=sample_size,
+                                    verbose=self.verbose)
 
         # compute matrices used in AMN
         self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
-        self.V2M = compute_V2M(self.S)
-        self.M2V = compute_M2V(self.S)
         self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
-        # self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
-
-
-    def save(self, dataset_dir, dataset_name, verbose=False, reduce=False):
-
-        if reduce:
-            self.reduce_and_run(verbose=verbose) 
-            
-            self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
-            self.V2M = compute_V2M(self.S)
-            self.M2V = compute_M2V(self.S)
-            self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
-            # self.P_out = compute_P_out(self.S, self.measure, self.model.reactions)
-        
-        MetabolicDataset.save(self,dataset_dir, dataset_name, verbose=verbose)
 
 
     def get_simulated_data(self, sample_size=100, varmed=[], add_to_existing_data =False, reduce=False,verbose=False):
         """
         Generate a training set using cobra. The training set is store in the X and Y attributes.
         """
+
         X,Y = [],[]
         for i in range(sample_size):
             if verbose: print('sample:',i)
-
-            
-
-
-
-            # Cobra runs on reduce model where X is already known ## EXP !!!
-            if reduce:
-                inf = {r.id: 0 for r in self.model.reactions}
-                for j in range(len(self.medium)):
-                    inf[self.medium[j]] = self.X[i,j]
-            else:
-                inf = create_random_medium_cobra(self.model, self.cobra_objective, 
-                                         self.medium, self.medium_bound,
-                                         varmed, self.level_med, self.value_medium.copy(), self.ratio_medium,
-                                         method=self.method,verbose=verbose)
-            
+            inf = create_random_medium_cobra(self.model, 
+                                             self.cobra_objective, 
+                                             self.medium,
+                                             varmed, 
+                                             self.level_med, 
+                                             self.value_medium.copy(), 
+                                             self.ratio_medium,
+                                             method=self.method)
             X.append([inf[m] for m in self.medium])
-
-            # with open("test_cobra.txt", "a") as f:
-                # f.write(str(i) + ": "+ str(X[i]) + '\n')
-
-            # out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
-
-
-            ## is this happening ?
             try:
                 out,_ = run_cobra(self.model,self.cobra_objective,inf,method=self.method,verbose=verbose)
             except:
                 print('Cobra cannot be run start again')
                 continue
-
-
             Y.append(list(out.values()))
-
         X = np.array(X)
         Y = np.array(Y)
 
@@ -125,44 +91,55 @@ class SimulatedDataset(MetabolicDataset):
             self.Y = np.concatenate((self.Y, Y), axis=0)
         else:
             self.X, self.Y = X, Y
-        self.size = self.X.shape[0]
 
 
-    def reduce_and_run(self,verbose=False):
-        # reduce a model recompute matrices and rerun cobra
-        # with the provided training set
-        measure = [] if len(self.measure) == len(self.reactions) \
-        else self.measure
-
-        self.model = self.reduce_model(self.model, self.medium, measure,
-                                  self.Y, verbose=verbose)
-        
-        self.measure = [r for r in self.reactions] \
-        if measure == [] else measure
-
-        self.get_simulated_data(sample_size=self.size, reduce=True, verbose=verbose)
-
-
-    def reduce_model(self, model, medium, measure, flux, verbose=False):
+    def reduce_model(self):
     # Remove all reactions not in medium having a zero flux
     # Input: the model, the medium, the flux vector (a 2D array)
     # Output: the reduce model
+        
+        model = self.model
+        medium = self.medium
+        flux = self.Y
+        
+        measured_reaction = [] if len(self.measure) == len(self.reactions) \
+        else self.measure
 
-    # Collect reaction to be removed
-        remove=[]
+        # Collect reaction to be removed
+        remove_reaction=[]
+        remove_id = []
         for j in range(flux.shape[1]):
-            if np.count_nonzero(flux[:,j]) == 0 and model.reactions[j].id not in medium and model.reactions[j].id not in measure:
-                remove.append(model.reactions[j])
-                
+            if np.count_nonzero(flux[:,j]) == 0:
+                # Check if reaction is not in medium of measured
+                reaction_id = model.reactions[j].id
+                if reaction_id not in medium and reaction_id not in measured_reaction:
+                    remove_reaction.append(model.reactions[j])
+
+                    index = [r.id for r in model.reactions].index(reaction_id)
+                    remove_id.append(index)
+        
+
         # Actual deletion
-        model.remove_reactions(remove)
-        manip.delete.prune_unused_reactions(model)
+        model.remove_reactions(remove_reaction)
+        cobra.manipulation.delete.prune_unused_reactions(model)
+
+
+        # remove reaction columns from Y
+        self.Y = np.delete(self.Y,remove_id,1)
+
+        remove_metabolite = []
         for m in model.metabolites:
             if len(m.reactions) == 0:
-                model.remove_metabolites(m)
-        manip.delete.prune_unused_metabolites(model)
+                remove_metabolite.append(m)
+        
+        for m in remove_metabolite:
+            model.remove_metabolites(m)
+
+        cobra.manipulation.delete.prune_unused_metabolites(model)
         print('reduced numbers of metabolites and reactions:',
               len(model.metabolites), len(model.reactions))
         
         self.reactions = [r.id for r in list(model.reactions)]
-        return model
+        self.S = cobra.util.array.create_stoichiometric_matrix(self.model)
+        self.P_in = compute_P_in(self.S, self.medium, self.model.reactions)
+

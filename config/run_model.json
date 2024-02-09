@@ -1,7 +1,7 @@
 {
     "e_coli_core_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/e_coli_core_UB.npz",
+            "dataset_file": "/dataset/e_coli_core_UB.npz",
             "objective": [
                 "BIOMASS_Ecoli_core_w_GAM"
             ],
@@ -24,7 +24,7 @@
     },
     "e_coli_core_EB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/e_coli_core_EB.npz",
+            "dataset_file": "/dataset/e_coli_core_EB.npz",
             "objective": [
                 "BIOMASS_Ecoli_core_w_GAM"
             ],
@@ -47,7 +47,7 @@
     },
     "e_coli_core_UB_100": {
         "model_parameters": {
-            "dataset_file": "/Dataset/e_coli_core_UB_100.npz",
+            "dataset_file": "/dataset/e_coli_core_UB_100.npz",
             "objective": [
                 "BIOMASS_Ecoli_core_w_GAM"
             ],
@@ -70,7 +70,7 @@
     },
     "iML1515_EXP_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/iML1515_EXP_UB.npz",
+            "dataset_file": "/dataset/iML1515_EXP_UB.npz",
             "objective": [
                 "BIOMASS_Ec_iML1515_core_75p37M"
             ],
@@ -84,7 +84,7 @@
             "scaler": "maxscaler"
         },
         "training_parameters": {
-            "epochs": 1000,
+            "epochs": 1500,
             "batch_size": 7
         },
         "visualization_parameters": {
@@ -93,7 +93,7 @@
     },
     "IJN1463_10_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/IJN1463_10_UB.npz",
+            "dataset_file": "/dataset/IJN1463_10_UB.npz",
             "objective": [
                 "BIOMASS_KT2440_WT3"
             ],
@@ -116,7 +116,7 @@
     },
     "IJN1463_EXP_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/IJN1463_EXP_UB.npz",
+            "dataset_file": "/dataset/IJN1463_EXP_UB.npz",
             "objective": [
                 "BIOMASS_KT2440_WT3"
             ],
@@ -139,7 +139,7 @@
     },
     "biolog_iML1515_EXP_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/biolog_iML1515_EXP_UB.npz",
+            "dataset_file": "/dataset/biolog_iML1515_EXP_UB.npz",
             "objective": [
                 "BIOMASS_Ec_iML1515_core_75p37M"
             ],
@@ -163,7 +163,7 @@
     },
     "biolog_iML1515_medium_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/biolog_iML1515_medium_UB.npz",
+            "dataset_file": "/dataset/biolog_iML1515_medium_UB.npz",
             "objective": [
                 "BIOMASS_Ec_iML1515_core_75p37M"
             ],
@@ -186,7 +186,7 @@
     },
     "iML1515_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/iML1515_UB.npz",
+            "dataset_file": "/dataset/iML1515_UB.npz",
             "objective": [
                 "BIOMASS_Ec_iML1515_core_75p37M"
             ],
@@ -209,7 +209,7 @@
     },
     "iML1515_EXP_2_UB": {
         "model_parameters": {
-            "dataset_file": "/Dataset/iML1515_EXP_2_UB.npz",
+            "dataset_file": "/dataset/iML1515_EXP_2_UB.npz",
             "objective": [
                 "BIOMASS_Ec_iML1515_core_75p37M"
             ],

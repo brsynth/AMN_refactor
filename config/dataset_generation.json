@@ -2,142 +2,153 @@
     "e_coli_core_UB_100": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/e_coli_core_duplicated.xml",
-            "medium_file": "/Dataset_input/e_coli_core.csv",
+            "cobra_file": "/dataset_input/sbml_model/e_coli_core_duplicated.xml",
+            "medium_file": "/dataset_input/medium/e_coli_core.csv",
             "method": "pFBA",
             "medium_bound": "UB",
             "sample_size": 100
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
-            "dataset_name": "e_coli_core_UB_100",
-            "reduce": false
+            "dataset_dir": "/dataset/",
+            "dataset_name": "e_coli_core_UB_100"
         }
     },
     "e_coli_core_UB": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/e_coli_core_duplicated.xml",
-            "medium_file": "/Dataset_input/e_coli_core.csv",
+            "cobra_file": "/dataset_input/sbml_model/e_coli_core_duplicated.xml",
+            "medium_file": "/dataset_input/medium/e_coli_core.csv",
             "method": "pFBA",
             "medium_bound": "UB",
             "sample_size": 1000
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
-            "dataset_name": "e_coli_core_UB",
-            "reduce": false
+            "dataset_dir": "/dataset/",
+            "dataset_name": "e_coli_core_UB"
         }
     },
     "e_coli_core_EB": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/e_coli_core_duplicated.xml",
-            "medium_file": "/Dataset_input/e_coli_core.csv",
+            "cobra_file": "/dataset_input/sbml_model/e_coli_core_duplicated.xml",
+            "medium_file": "/dataset_input/medium/e_coli_core.csv",
             "method": "pFBA",
             "medium_bound": "EB",
             "sample_size": 1000
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
-            "dataset_name": "e_coli_core_EB",
-            "reduce": false
+            "dataset_dir": "/dataset/",
+            "dataset_name": "e_coli_core_EB"
         }
     },
     "IJN1463_10_UB": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/IJN1463_duplicated.xml",
-            "experimental_file": "/Dataset_input/IJN1463_EXP.csv",
-            "medium_file": "/Dataset_input/IJN1463_10.csv",
+            "cobra_file": "/dataset_input/sbml_model/IJN1463_duplicated.xml",
+            "experimental_file": "/dataset_input/experimental/IJN1463_EXP.csv",
+            "medium_file": "/dataset_input/medium/IJN1463_10.csv",
             "method": "FBA",
             "medium_bound": "UB",
             "sample_size": 20
         },
+        "reduce": true,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
-            "dataset_name": "IJN1463_10_UB",
-            "reduce": true
+            "dataset_dir": "/dataset/",
+            "dataset_name": "IJN1463_10_UB"
         }
     },
     "iML1515_EXP_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/iML1515_EXP.xml",
-            "medium_file": "/Dataset_input/iML1515_EXP.csv",
+            "cobra_file": "/dataset/iML1515_UB.xml",
+            "medium_file":"",
+            "experimental_file": "/dataset_input/experimental/iML1515_EXP.csv",
             "method": "EXP",
             "medium_bound": "UB"
         },
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "iML1515_EXP_UB"
         }
     },
     "IJN1463_EXP_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/IJN1463_duplicated.xml",
-            "medium_file": "/Dataset_input/IJN1463_EXP.csv",
+            "cobra_file": "/dataset_input/sbml_model/IJN1463_duplicated.xml",
+            "experimental_file": "/dataset_input/experimental/IJN1463_EXP.csv",
+            "medium_file": "",
             "method": "EXP",
             "medium_bound": "UB"
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "IJN1463_EXP_UB"
         }
     },
     "biolog_iML1515_EXP_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
-            "medium_file": "/Dataset_input/biolog_iML1515_EXP.csv",
+            "cobra_file": "/dataset_input/sbml_model/iML1515_duplicated.xml",
+            "medium_file": "",
+            "experimental_file": "/dataset_input/experimental/biolog_iML1515_EXP.csv",
             "method": "EXP",
             "medium_bound": "UB"
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "biolog_iML1515_EXP_UB"
         }
     },
     "biolog_iML1515_medium_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
-            "medium_file": "/Dataset_input/biolog_iML1515_medium_and_GR.csv",
+            "cobra_file": "/dataset_input/sbml_model/iML1515_duplicated.xml",
+            "medium_file": "",
+            "experimental_file": "/dataset_input/experimental/biolog_iML1515_medium_and_GR.csv",
             "method": "EXP",
             "medium_bound": "UB"
         },
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "biolog_iML1515_medium_UB"
         }
     },
     "iML1515_UB": {
         "method_generation": "simulated",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
-            "experimental_file": "/Dataset_input/iML1515_EXP.csv",
-            "medium_file": "/Dataset_input/iML1515.csv",
+            "cobra_file": "/dataset_input/sbml_model/iML1515_duplicated.xml",
+            "medium_file": "/dataset_input/medium/iML1515.csv",
+            "experimental_file": "/dataset_input/experimental/iML1515_EXP.csv",
             "method": "pFBA",
             "medium_bound": "UB",
             "sample_size": 100
         },
+        "reduce":true,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "iML1515_UB"
         }
     },
     "iML1515_EXP_2_UB": {
         "method_generation": "experimental",
         "MetabolicDataset_parameters": {
-            "cobra_file": "/Dataset_input/iML1515_duplicated.xml",
-            "medium_file": "/Dataset_input/iML1515_EXP.csv",
+            "cobra_file": "/dataset_input/sbml_model/iML1515_duplicated.xml",
+            "medium_file": "",
+            "experimental_file": "/dataset_input/experimental/iML1515_EXP_2.csv",
             "method": "EXP",
             "medium_bound": "UB"
         },
+        "reduce":false,
         "saving_parameters": {
-            "dataset_dir": "/Dataset/",
+            "dataset_dir": "/dataset/",
             "dataset_name": "iML1515_EXP_2_UB"
         }
     }
+
 }
+

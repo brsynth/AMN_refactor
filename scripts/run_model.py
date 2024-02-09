@@ -155,12 +155,13 @@ if __name__ == "__main__":
     show_figures = False
     add_random_state = 0
     sum_up =True
+    run_all = False
     
 
-    model_class = LinearModel
-    model_parameters_file = "../config/run_model_linear.json"
-    save_folder = "../results_linear/"
-    run_all = False
+    # model_class = LinearModel
+    # model_parameters_file = "../config/run_model_linear.json"
+    # save_folder = "../results_linear/"
+    # run_all = False
     # run_all = True
 
     # model_class = AMRNNModel
@@ -183,38 +184,45 @@ if __name__ == "__main__":
            "iML1515_EXP_2_UB"]
 
     dataset = "e_coli_core_UB_100"
-    # model = "e_coli_core_UB"
-    # model = "e_coli_core_EB"
-    # model = "IJN1463_10_UB"
-    # model = "IJN1463_EXP_UB"
+    # dataset = "e_coli_core_UB"
+    # dataset = "e_coli_core_EB"
+    # dataset = "IJN1463_10_UB"
+    # dataset = "IJN1463_EXP_UB"
     dataset = "iML1515_EXP_UB"
-    # model = "iML1515_UB"
-    # model = "biolog_iML1515_EXP_UB"
-    # model = "biolog_iML1515_medium_UB"
-    # model = "iML1515_EXP_2_UB"
+    # dataset = "iML1515_UB"
+    # dataset = "biolog_iML1515_EXP_UB"
+    # dataset = "biolog_iML1515_medium_UB"
+    # dataset = "iML1515_EXP_2_UB"
 
 
-    # if run_all:
-        # for dataset in all:
-            # run_model(model_class,
-                    #   dataset,
-                    #   model_parameters_file,
-                    #   data_dir,
-                    #   cross_validation,
-                    #   save_folder,
-                    #   verbose,
-                    #   add_random_state,
-                    #   show_figures)
-    # else:
-        # run_model(model_class,
-                #   dataset,
-                #   model_parameters_file,
-                #   data_dir,
-                #   cross_validation,
-                #   save_folder,
-                #   verbose,
-                #   add_random_state,
-                #   show_figures)
+    model_parameters_file = "../config/run_model_.json"
+    data_dir = "../data_3"
+    save_folder = "../results_/"
+    run_all = False
+
+
+
+    if run_all:
+        for dataset in all:
+            run_model(model_class,
+                      dataset,
+                      model_parameters_file,
+                      data_dir,
+                      cross_validation,
+                      save_folder,
+                      verbose,
+                      add_random_state,
+                      show_figures)
+    else:
+        run_model(model_class,
+                  dataset,
+                  model_parameters_file,
+                  data_dir,
+                  cross_validation,
+                  save_folder,
+                  verbose,
+                  add_random_state,
+                  show_figures)
     
     if sum_up:
         from sum_up_result import sum_up_result

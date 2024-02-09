@@ -7,10 +7,7 @@ from sklearn.model_selection import train_test_split
 # from sklearn.model_selection import KFold
 # from returnStats import ReturnStats
 from amn.dataset import MetabolicDataset
-from amn.tools import  compute_P_out, compute_P_in
-
-
-
+from amn.tools import  compute_P_out, compute_P_in, compute_V2M, compute_M2V
 
 
 class NeuralModel:
@@ -64,9 +61,12 @@ class NeuralModel:
         self.dataset_file = dataset_file
         self.S = dataset.S
         self.P_in = dataset.P_in 
-        self.V2M = dataset.V2M 
-        self.M2V = dataset.M2V
-        self.M2V_norm = self.norm_M2V(dataset.M2V)
+        # self.V2M = dataset.V2M 
+        # self.M2V = dataset.M2V
+        self.V2M = compute_V2M(self.S) 
+        self.M2V = compute_M2V(self.S)
+        # self.M2V_norm = self.norm_M2V(dataset.M2V)
+        self.M2V_norm = self.norm_M2V(self.M2V)
         self.reactions = dataset.reactions
         self.medium = dataset.medium
         self.P_uptake = compute_P_in(self.S, self.medium[:uptake_max_index], list(self.reactions))
